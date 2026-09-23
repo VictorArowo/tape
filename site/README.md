@@ -17,8 +17,18 @@ The results sections read JSON from `data/results/`:
   cp results/honest-vs-naive.json site/data/results/
   ```
 
-- `experiment.json`: the AI research experiment. Still **placeholder data**
-  (`"placeholder": true`), so its section shows a "Placeholder data" flag.
+- `experiment.json`: **real.** The full lab run (200 attempts), copied in:
+
+  ```sh
+  cp results/lab/full-1/experiment.json site/data/results/
+  ```
+
+  Some copy under the scatter chart is written for this run specifically (the note about
+  high-turnover strategies and the buy-and-hold-in-disguise cluster). Revisit it if the
+  run is replaced. Model knowledge cutoffs live in `MODEL_CUTOFFS` in `results.js`.
+
+  Small real runs can be published with `"pilot": true` added, which shows a
+  "Pilot run" badge instead.
 
 The demo in `demo.js` runs a placeholder engine (`ENGINE_IS_PLACEHOLDER`) until the
 WebAssembly build is wired into `runBacktest`.

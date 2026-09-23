@@ -1,1 +1,1449 @@
-{"placeholder":true,"train":{"from":"2023-01-01","to":"2026-05-31"},"test":{"from":"2026-06-01","to":"2026-08-31"},"funnel":{"proposed":150,"compiled":120,"ran":110,"passedCritic":40,"beatBuyHold":4},"buyHoldInSampleSharpe":1.41,"buyHoldOutOfSampleSharpe":0.62,"strategies":[{"id":"s002","name":"Range breakout v2","inSampleSharpe":1.94,"outOfSampleSharpe":-0.34,"status":"passed"},{"id":"s007","name":"Volume-spike fade v8","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"passed"},{"id":"s011","name":"Round-number bounce v7","inSampleSharpe":3.29,"outOfSampleSharpe":1.05,"status":"passed"},{"id":"s012","name":"Volatility squeeze v1","inSampleSharpe":2.34,"outOfSampleSharpe":0.08,"status":"passed"},{"id":"s014","name":"Trend after gap v3","inSampleSharpe":0.54,"outOfSampleSharpe":-0.7,"status":"passed"},{"id":"s016","name":"Opening-hour reversal v5","inSampleSharpe":1.63,"outOfSampleSharpe":-0.19,"status":"passed"},{"id":"s018","name":"Range breakout v4","inSampleSharpe":3.59,"outOfSampleSharpe":-0.39,"status":"passed"},{"id":"s020","name":"Volatility squeeze v8","inSampleSharpe":0.51,"outOfSampleSharpe":-0.63,"status":"passed"},{"id":"s021","name":"Range breakout v7","inSampleSharpe":2.2,"outOfSampleSharpe":-0.22,"status":"passed"},{"id":"s022","name":"Weekend drift v3","inSampleSharpe":0.72,"outOfSampleSharpe":0.61,"status":"passed"},{"id":"s025","name":"Opening-hour reversal v9","inSampleSharpe":3.0,"outOfSampleSharpe":0.19,"status":"passed"},{"id":"s026","name":"Mean reversion to VWAP v2","inSampleSharpe":2.65,"outOfSampleSharpe":0.41,"status":"passed"},{"id":"s027","name":"Overnight momentum v2","inSampleSharpe":3.32,"outOfSampleSharpe":0.31,"status":"passed"},{"id":"s028","name":"Mean reversion to VWAP v3","inSampleSharpe":1.72,"outOfSampleSharpe":0.23,"status":"passed"},{"id":"s029","name":"Volatility squeeze v9","inSampleSharpe":0.67,"outOfSampleSharpe":-0.12,"status":"passed"},{"id":"s031","name":"Opening-hour reversal v6","inSampleSharpe":2.36,"outOfSampleSharpe":0.03,"status":"passed"},{"id":"s032","name":"Range breakout v6","inSampleSharpe":0.45,"outOfSampleSharpe":-0.79,"status":"passed"},{"id":"s035","name":"Round-number bounce v6","inSampleSharpe":2.37,"outOfSampleSharpe":-0.38,"status":"passed"},{"id":"s038","name":"Opening-hour reversal v1","inSampleSharpe":2.57,"outOfSampleSharpe":-0.72,"status":"passed"},{"id":"s041","name":"Weekend drift v4","inSampleSharpe":1.67,"outOfSampleSharpe":-0.37,"status":"passed"},{"id":"s044","name":"Round-number bounce v7","inSampleSharpe":1.8,"outOfSampleSharpe":0.19,"status":"passed"},{"id":"s046","name":"Overnight momentum v5","inSampleSharpe":0.31,"outOfSampleSharpe":0.66,"status":"passed"},{"id":"s048","name":"Range breakout v1","inSampleSharpe":3.02,"outOfSampleSharpe":-0.0,"status":"passed"},{"id":"s050","name":"Weekend drift v4","inSampleSharpe":2.02,"outOfSampleSharpe":-0.38,"status":"passed"},{"id":"s057","name":"Opening-hour reversal v9","inSampleSharpe":1.53,"outOfSampleSharpe":0.52,"status":"passed"},{"id":"s067","name":"Liquidity sweep v1","inSampleSharpe":0.22,"outOfSampleSharpe":-0.44,"status":"passed"},{"id":"s071","name":"Trend after gap v9","inSampleSharpe":1.88,"outOfSampleSharpe":-0.74,"status":"passed"},{"id":"s073","name":"Volatility squeeze v6","inSampleSharpe":0.97,"outOfSampleSharpe":-1.05,"status":"passed"},{"id":"s074","name":"Mean reversion to VWAP v5","inSampleSharpe":1.9,"outOfSampleSharpe":-0.79,"status":"passed"},{"id":"s086","name":"Volume-spike fade v6","inSampleSharpe":2.52,"outOfSampleSharpe":0.28,"status":"passed"},{"id":"s088","name":"Round-number bounce v4","inSampleSharpe":1.74,"outOfSampleSharpe":0.21,"status":"passed"},{"id":"s094","name":"Volatility squeeze v4","inSampleSharpe":3.41,"outOfSampleSharpe":0.68,"status":"passed"},{"id":"s098","name":"Liquidity sweep v9","inSampleSharpe":1.05,"outOfSampleSharpe":-0.09,"status":"passed"},{"id":"s102","name":"Liquidity sweep v5","inSampleSharpe":1.56,"outOfSampleSharpe":-0.09,"status":"passed"},{"id":"s105","name":"Volatility squeeze v2","inSampleSharpe":1.27,"outOfSampleSharpe":-0.74,"status":"passed"},{"id":"s107","name":"Weekend drift v2","inSampleSharpe":0.53,"outOfSampleSharpe":0.17,"status":"passed"},{"id":"s108","name":"Overnight momentum v6","inSampleSharpe":1.62,"outOfSampleSharpe":-1.23,"status":"passed"},{"id":"s112","name":"Mean reversion to VWAP v4","inSampleSharpe":2.27,"outOfSampleSharpe":0.75,"status":"passed"},{"id":"s115","name":"Liquidity sweep v4","inSampleSharpe":2.04,"outOfSampleSharpe":0.17,"status":"passed"},{"id":"s119","name":"Range breakout v7","inSampleSharpe":3.04,"outOfSampleSharpe":-0.27,"status":"passed"}],"allStrategies":[{"id":"s001","name":"Mean reversion to VWAP v4","inSampleSharpe":2.1,"outOfSampleSharpe":0.51,"status":"rejected"},{"id":"s002","name":"Range breakout v2","inSampleSharpe":1.94,"outOfSampleSharpe":-0.34,"status":"passed"},{"id":"s003","name":"Mean reversion to VWAP v7","inSampleSharpe":0.68,"outOfSampleSharpe":-1.37,"status":"rejected"},{"id":"s004","name":"Mean reversion to VWAP v3","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"runtime_failed"},{"id":"s005","name":"Overnight momentum v4","inSampleSharpe":3.03,"outOfSampleSharpe":-0.17,"status":"rejected"},{"id":"s006","name":"Weekend drift v9","inSampleSharpe":2.24,"outOfSampleSharpe":0.07,"status":"rejected"},{"id":"s007","name":"Volume-spike fade v8","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"passed"},{"id":"s008","name":"Opening-hour reversal v6","inSampleSharpe":1.58,"outOfSampleSharpe":-1.32,"status":"rejected"},{"id":"s009","name":"Mean reversion to VWAP v2","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"rejected"},{"id":"s010","name":"Overnight momentum v4","inSampleSharpe":3.08,"outOfSampleSharpe":-0.94,"status":"rejected"},{"id":"s011","name":"Round-number bounce v7","inSampleSharpe":3.29,"outOfSampleSharpe":1.05,"status":"passed"},{"id":"s012","name":"Volatility squeeze v1","inSampleSharpe":2.34,"outOfSampleSharpe":0.08,"status":"passed"},{"id":"s013","name":"Volume-spike fade v3","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"runtime_failed"},{"id":"s014","name":"Trend after gap v3","inSampleSharpe":0.54,"outOfSampleSharpe":-0.7,"status":"passed"},{"id":"s015","name":"Round-number bounce v7","inSampleSharpe":0.84,"outOfSampleSharpe":-1.82,"status":"rejected"},{"id":"s016","name":"Opening-hour reversal v5","inSampleSharpe":1.63,"outOfSampleSharpe":-0.19,"status":"passed"},{"id":"s017","name":"Overnight momentum v4","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"runtime_failed"},{"id":"s018","name":"Range breakout v4","inSampleSharpe":3.59,"outOfSampleSharpe":-0.39,"status":"passed"},{"id":"s019","name":"Opening-hour reversal v7","inSampleSharpe":0.23,"outOfSampleSharpe":-0.75,"status":"rejected"},{"id":"s020","name":"Volatility squeeze v8","inSampleSharpe":0.51,"outOfSampleSharpe":-0.63,"status":"passed"},{"id":"s021","name":"Range breakout v7","inSampleSharpe":2.2,"outOfSampleSharpe":-0.22,"status":"passed"},{"id":"s022","name":"Weekend drift v3","inSampleSharpe":0.72,"outOfSampleSharpe":0.61,"status":"passed"},{"id":"s023","name":"Round-number bounce v8","inSampleSharpe":3.4,"outOfSampleSharpe":-0.39,"status":"rejected"},{"id":"s024","name":"Weekend drift v7","inSampleSharpe":1.63,"outOfSampleSharpe":0.02,"status":"rejected"},{"id":"s025","name":"Opening-hour reversal v9","inSampleSharpe":3.0,"outOfSampleSharpe":0.19,"status":"passed"},{"id":"s026","name":"Mean reversion to VWAP v2","inSampleSharpe":2.65,"outOfSampleSharpe":0.41,"status":"passed"},{"id":"s027","name":"Overnight momentum v2","inSampleSharpe":3.32,"outOfSampleSharpe":0.31,"status":"passed"},{"id":"s028","name":"Mean reversion to VWAP v3","inSampleSharpe":1.72,"outOfSampleSharpe":0.23,"status":"passed"},{"id":"s029","name":"Volatility squeeze v9","inSampleSharpe":0.67,"outOfSampleSharpe":-0.12,"status":"passed"},{"id":"s030","name":"Opening-hour reversal v1","inSampleSharpe":0.68,"outOfSampleSharpe":-0.15,"status":"rejected"},{"id":"s031","name":"Opening-hour reversal v6","inSampleSharpe":2.36,"outOfSampleSharpe":0.03,"status":"passed"},{"id":"s032","name":"Range breakout v6","inSampleSharpe":0.45,"outOfSampleSharpe":-0.79,"status":"passed"},{"id":"s033","name":"Round-number bounce v1","inSampleSharpe":2.53,"outOfSampleSharpe":0.18,"status":"rejected"},{"id":"s034","name":"Mean reversion to VWAP v2","inSampleSharpe":2.15,"outOfSampleSharpe":-0.41,"status":"rejected"},{"id":"s035","name":"Round-number bounce v6","inSampleSharpe":2.37,"outOfSampleSharpe":-0.38,"status":"passed"},{"id":"s036","name":"Volume-spike fade v9","inSampleSharpe":2.7,"outOfSampleSharpe":-0.46,"status":"rejected"},{"id":"s037","name":"Trend after gap v1","inSampleSharpe":0.3,"outOfSampleSharpe":-0.59,"status":"rejected"},{"id":"s038","name":"Opening-hour reversal v1","inSampleSharpe":2.57,"outOfSampleSharpe":-0.72,"status":"passed"},{"id":"s039","name":"Liquidity sweep v3","inSampleSharpe":0.69,"outOfSampleSharpe":-0.23,"status":"rejected"},{"id":"s040","name":"Round-number bounce v5","inSampleSharpe":1.36,"outOfSampleSharpe":0.44,"status":"rejected"},{"id":"s041","name":"Weekend drift v4","inSampleSharpe":1.67,"outOfSampleSharpe":-0.37,"status":"passed"},{"id":"s042","name":"Overnight momentum v2","inSampleSharpe":2.18,"outOfSampleSharpe":-0.14,"status":"rejected"},{"id":"s043","name":"Opening-hour reversal v3","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"runtime_failed"},{"id":"s044","name":"Round-number bounce v7","inSampleSharpe":1.8,"outOfSampleSharpe":0.19,"status":"passed"},{"id":"s045","name":"Trend after gap v6","inSampleSharpe":1.88,"outOfSampleSharpe":-0.49,"status":"rejected"},{"id":"s046","name":"Overnight momentum v5","inSampleSharpe":0.31,"outOfSampleSharpe":0.66,"status":"passed"},{"id":"s047","name":"Trend after gap v4","inSampleSharpe":1.25,"outOfSampleSharpe":-0.13,"status":"rejected"},{"id":"s048","name":"Range breakout v1","inSampleSharpe":3.02,"outOfSampleSharpe":-0.0,"status":"passed"},{"id":"s049","name":"Volume-spike fade v8","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"runtime_failed"},{"id":"s050","name":"Weekend drift v4","inSampleSharpe":2.02,"outOfSampleSharpe":-0.38,"status":"passed"},{"id":"s051","name":"Trend after gap v9","inSampleSharpe":1.07,"outOfSampleSharpe":-0.6,"status":"rejected"},{"id":"s052","name":"Liquidity sweep v9","inSampleSharpe":0.81,"outOfSampleSharpe":-0.3,"status":"rejected"},{"id":"s053","name":"Weekend drift v2","inSampleSharpe":2.77,"outOfSampleSharpe":0.57,"status":"rejected"},{"id":"s054","name":"Overnight momentum v7","inSampleSharpe":3.24,"outOfSampleSharpe":-0.32,"status":"rejected"},{"id":"s055","name":"Volatility squeeze v8","inSampleSharpe":2.42,"outOfSampleSharpe":0.4,"status":"rejected"},{"id":"s056","name":"Volume-spike fade v4","inSampleSharpe":3.54,"outOfSampleSharpe":1.08,"status":"rejected"},{"id":"s057","name":"Opening-hour reversal v9","inSampleSharpe":1.53,"outOfSampleSharpe":0.52,"status":"passed"},{"id":"s058","name":"Volatility squeeze v5","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"runtime_failed"},{"id":"s059","name":"Liquidity sweep v7","inSampleSharpe":3.11,"outOfSampleSharpe":-0.02,"status":"rejected"},{"id":"s060","name":"Volume-spike fade v7","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"rejected"},{"id":"s061","name":"Range breakout v9","inSampleSharpe":0.79,"outOfSampleSharpe":-0.72,"status":"rejected"},{"id":"s062","name":"Trend after gap v8","inSampleSharpe":1.96,"outOfSampleSharpe":0.78,"status":"rejected"},{"id":"s063","name":"Liquidity sweep v3","inSampleSharpe":2.54,"outOfSampleSharpe":0.06,"status":"rejected"},{"id":"s064","name":"Opening-hour reversal v7","inSampleSharpe":3.07,"outOfSampleSharpe":-0.48,"status":"rejected"},{"id":"s065","name":"Mean reversion to VWAP v4","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"runtime_failed"},{"id":"s066","name":"Round-number bounce v9","inSampleSharpe":0.68,"outOfSampleSharpe":-0.67,"status":"rejected"},{"id":"s067","name":"Liquidity sweep v1","inSampleSharpe":0.22,"outOfSampleSharpe":-0.44,"status":"passed"},{"id":"s068","name":"Range breakout v2","inSampleSharpe":1.56,"outOfSampleSharpe":0.11,"status":"rejected"},{"id":"s069","name":"Trend after gap v7","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"runtime_failed"},{"id":"s070","name":"Round-number bounce v5","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"runtime_failed"},{"id":"s071","name":"Trend after gap v9","inSampleSharpe":1.88,"outOfSampleSharpe":-0.74,"status":"passed"},{"id":"s072","name":"Overnight momentum v1","inSampleSharpe":0.85,"outOfSampleSharpe":-1.15,"status":"rejected"},{"id":"s073","name":"Volatility squeeze v6","inSampleSharpe":0.97,"outOfSampleSharpe":-1.05,"status":"passed"},{"id":"s074","name":"Mean reversion to VWAP v5","inSampleSharpe":1.9,"outOfSampleSharpe":-0.79,"status":"passed"},{"id":"s075","name":"Overnight momentum v7","inSampleSharpe":2.58,"outOfSampleSharpe":0.04,"status":"rejected"},{"id":"s076","name":"Liquidity sweep v4","inSampleSharpe":3.01,"outOfSampleSharpe":-0.41,"status":"rejected"},{"id":"s077","name":"Range breakout v4","inSampleSharpe":3.09,"outOfSampleSharpe":-0.34,"status":"rejected"},{"id":"s078","name":"Weekend drift v4","inSampleSharpe":2.33,"outOfSampleSharpe":-0.2,"status":"rejected"},{"id":"s079","name":"Weekend drift v3","inSampleSharpe":0.86,"outOfSampleSharpe":0.06,"status":"rejected"},{"id":"s080","name":"Range breakout v4","inSampleSharpe":1.08,"outOfSampleSharpe":0.66,"status":"rejected"},{"id":"s081","name":"Weekend drift v6","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"rejected"},{"id":"s082","name":"Liquidity sweep v4","inSampleSharpe":3.49,"outOfSampleSharpe":0.66,"status":"rejected"},{"id":"s083","name":"Liquidity sweep v9","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"rejected"},{"id":"s084","name":"Range breakout v5","inSampleSharpe":1.84,"outOfSampleSharpe":0.03,"status":"rejected"},{"id":"s085","name":"Volume-spike fade v1","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"runtime_failed"},{"id":"s086","name":"Volume-spike fade v6","inSampleSharpe":2.52,"outOfSampleSharpe":0.28,"status":"passed"},{"id":"s087","name":"Overnight momentum v4","inSampleSharpe":1.65,"outOfSampleSharpe":-0.33,"status":"rejected"},{"id":"s088","name":"Round-number bounce v4","inSampleSharpe":1.74,"outOfSampleSharpe":0.21,"status":"passed"},{"id":"s089","name":"Round-number bounce v4","inSampleSharpe":0.52,"outOfSampleSharpe":-0.14,"status":"rejected"},{"id":"s090","name":"Opening-hour reversal v5","inSampleSharpe":3.54,"outOfSampleSharpe":-0.29,"status":"rejected"},{"id":"s091","name":"Volatility squeeze v9","inSampleSharpe":2.73,"outOfSampleSharpe":0.24,"status":"rejected"},{"id":"s092","name":"Round-number bounce v4","inSampleSharpe":2.81,"outOfSampleSharpe":-0.92,"status":"rejected"},{"id":"s093","name":"Volatility squeeze v1","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"rejected"},{"id":"s094","name":"Volatility squeeze v4","inSampleSharpe":3.41,"outOfSampleSharpe":0.68,"status":"passed"},{"id":"s095","name":"Weekend drift v2","inSampleSharpe":2.14,"outOfSampleSharpe":-0.56,"status":"rejected"},{"id":"s096","name":"Mean reversion to VWAP v2","inSampleSharpe":null,"outOfSampleSharpe":null,"status":"rejected"},{"id":"s097","name":"Round-number bounce v1","inSampleSharpe":1.07,"outOfSampleSharpe":-0.33,"status":"rejected"},{"id":"s098","name":"Liquidity sweep v9","inSampleSharpe":1.05,"outOfSampleSharpe":-0.09,"status":"passed"},{"id":"s099","name":"Volume-spike fade v9","inSampleSharpe":3.49,"outOfSampleSharpe":-1.46,"status":"rejected"},{"id":"s100","name":"Range breakout v7","inSampleSharpe":2.78,"outOfSampleSharpe":-0.68,"status":"rejected"},{"id":"s101","name":"Trend after gap v7","inSampleSharpe":0.78,"outOfSampleSharpe":-0.99,"status":"rejected"},{"id":"s102","name":"Liquidity sweep v5","inSampleSharpe":1.56,"outOfSampleSharpe":-0.09,"status":"passed"},{"id":"s103","name":"Overnight momentum v1","inSampleSharpe":1.12,"outOfSampleSharpe":0.55,"status":"rejected"},{"id":"s104","name":"Round-number bounce v7","inSampleSharpe":2.19,"outOfSampleSharpe":-0.37,"status":"rejected"},{"id":"s105","name":"Volatility squeeze v2","inSampleSharpe":1.27,"outOfSampleSharpe":-0.74,"status":"passed"},{"id":"s106","name":"Opening-hour reversal v4","inSampleSharpe":0.96,"outOfSampleSharpe":0.23,"status":"rejected"},{"id":"s107","name":"Weekend drift v2","inSampleSharpe":0.53,"outOfSampleSharpe":0.17,"status":"passed"},{"id":"s108","name":"Overnight momentum v6","inSampleSharpe":1.62,"outOfSampleSharpe":-1.23,"status":"passed"},{"id":"s109","name":"Opening-hour reversal v7","inSampleSharpe":0.62,"outOfSampleSharpe":-1.02,"status":"rejected"},{"id":"s110","name":"Range breakout v5","inSampleSharpe":2.73,"outOfSampleSharpe":0.35,"status":"rejected"},{"id":"s111","name":"Mean reversion to VWAP v6","inSampleSharpe":1.01,"outOfSampleSharpe":0.68,"status":"rejected"},{"id":"s112","name":"Mean reversion to VWAP v4","inSampleSharpe":2.27,"outOfSampleSharpe":0.75,"status":"passed"},{"id":"s113","name":"Weekend drift v1","inSampleSharpe":2.76,"outOfSampleSharpe":0.22,"status":"rejected"},{"id":"s114","name":"Overnight momentum v1","inSampleSharpe":0.23,"outOfSampleSharpe":0.07,"status":"rejected"},{"id":"s115","name":"Liquidity sweep v4","inSampleSharpe":2.04,"outOfSampleSharpe":0.17,"status":"passed"},{"id":"s116","name":"Weekend drift v6","inSampleSharpe":1.47,"outOfSampleSharpe":-0.03,"status":"rejected"},{"id":"s117","name":"Mean reversion to VWAP v4","inSampleSharpe":2.73,"outOfSampleSharpe":0.17,"status":"rejected"},{"id":"s118","name":"Range breakout v6","inSampleSharpe":2.74,"outOfSampleSharpe":-0.12,"status":"rejected"},{"id":"s119","name":"Range breakout v7","inSampleSharpe":3.04,"outOfSampleSharpe":-0.27,"status":"passed"},{"id":"s120","name":"Volatility squeeze v2","inSampleSharpe":2.17,"outOfSampleSharpe":-0.28,"status":"rejected"}],"examples":[{"name":"Overnight momentum","hypothesis":"Buy after a strong day, sell the next morning.","inSampleSharpe":2.9,"outOfSampleSharpe":-0.4,"critic":"The edge comes from twelve days in March. Remove them and it disappears."},{"name":"Volume-spike fade","hypothesis":"Sell into sudden volume spikes and buy back when volume normalises.","inSampleSharpe":1.8,"outOfSampleSharpe":0.9,"critic":"Holds up across months, but trades 40 times a day. Fees take most of it."},{"name":"Range breakout","hypothesis":"Buy when price leaves its overnight range.","inSampleSharpe":3.4,"outOfSampleSharpe":null,"critic":"Tuned five parameters on one year of data. Classic overfitting."}],"deflatedSharpe":{"best":"Range breakout v4","bestInSampleSharpe":3.59,"trials":110,"luckThresholdSharpe":3.8,"probability":0.18},"model":"gpt-6-luna","spentUsd":41.37,"stopped":"Reached the budget of 150 ideas."}
+{
+  "allStrategies": [
+    {
+      "id": "s001",
+      "inSampleSharpe": 0.31,
+      "name": "24h Breakout, 12h Exit",
+      "outOfSampleSharpe": 1.72,
+      "status": "rejected"
+    },
+    {
+      "id": "s002",
+      "inSampleSharpe": 1.0,
+      "name": "4h Range Breakout",
+      "outOfSampleSharpe": -0.44,
+      "status": "rejected"
+    },
+    {
+      "id": "s003",
+      "inSampleSharpe": 0.98,
+      "name": "Filtered 48-Hour Breakout",
+      "outOfSampleSharpe": 0.44,
+      "status": "rejected"
+    },
+    {
+      "id": "s004",
+      "inSampleSharpe": 1.22,
+      "name": "Hourly Channel Breakout",
+      "outOfSampleSharpe": 0.54,
+      "status": "rejected"
+    },
+    {
+      "id": "s005",
+      "inSampleSharpe": -3.14,
+      "name": "Trend-Filtered Flush Reversal",
+      "outOfSampleSharpe": 0.07,
+      "status": "rejected"
+    },
+    {
+      "id": "s006",
+      "inSampleSharpe": -0.57,
+      "name": "Trend-Gated Flush Reversion",
+      "outOfSampleSharpe": 0.84,
+      "status": "rejected"
+    },
+    {
+      "id": "s007",
+      "inSampleSharpe": -2.4,
+      "name": "Selloff Absorption Reversal",
+      "outOfSampleSharpe": 1.03,
+      "status": "rejected"
+    },
+    {
+      "id": "s008",
+      "inSampleSharpe": -1.11,
+      "name": "Liquidation Shock Reversion",
+      "outOfSampleSharpe": 0.07,
+      "status": "rejected"
+    },
+    {
+      "id": "s009",
+      "inSampleSharpe": 1.98,
+      "name": "Volatility-Targeted BTC",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s010",
+      "inSampleSharpe": 1.79,
+      "name": "Daily Volatility Scaling",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s011",
+      "inSampleSharpe": 2.01,
+      "name": "Downside-Volatility Budget",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s012",
+      "inSampleSharpe": -0.39,
+      "name": "Volatility Regime Filter",
+      "outOfSampleSharpe": -0.57,
+      "status": "rejected"
+    },
+    {
+      "id": "s013",
+      "inSampleSharpe": 1.25,
+      "name": "Weekday Exposure",
+      "outOfSampleSharpe": -0.47,
+      "status": "rejected"
+    },
+    {
+      "id": "s014",
+      "inSampleSharpe": 1.0,
+      "name": "Weekday-Only BTC",
+      "outOfSampleSharpe": -0.59,
+      "status": "rejected"
+    },
+    {
+      "id": "s015",
+      "inSampleSharpe": 1.37,
+      "name": "Weekend Liquidity Avoidance",
+      "outOfSampleSharpe": -0.49,
+      "status": "rejected"
+    },
+    {
+      "id": "s016",
+      "inSampleSharpe": 1.37,
+      "name": "Weekday Liquidity Window",
+      "outOfSampleSharpe": -0.49,
+      "status": "rejected"
+    },
+    {
+      "id": "s017",
+      "inSampleSharpe": -0.32,
+      "name": "Session-Overlap Continuation",
+      "outOfSampleSharpe": -5.74,
+      "status": "rejected"
+    },
+    {
+      "id": "s018",
+      "inSampleSharpe": -0.16,
+      "name": "US-Session Overnight Drift",
+      "outOfSampleSharpe": -3.39,
+      "status": "rejected"
+    },
+    {
+      "id": "s019",
+      "inSampleSharpe": -6.18,
+      "name": "Flow-Confirmed Trend",
+      "outOfSampleSharpe": -12.53,
+      "status": "rejected"
+    },
+    {
+      "id": "s020",
+      "inSampleSharpe": -1.93,
+      "name": "US-Window Momentum",
+      "outOfSampleSharpe": 0.91,
+      "status": "rejected"
+    },
+    {
+      "id": "s021",
+      "inSampleSharpe": -0.29,
+      "name": "Orderly Pullback Reclaim",
+      "outOfSampleSharpe": -4.9,
+      "status": "rejected"
+    },
+    {
+      "id": "s022",
+      "inSampleSharpe": 0.22,
+      "name": "Directional Efficiency Gate",
+      "outOfSampleSharpe": 1.37,
+      "status": "rejected"
+    },
+    {
+      "id": "s023",
+      "inSampleSharpe": 0.35,
+      "name": "Payday Flow Windows",
+      "outOfSampleSharpe": -1.72,
+      "status": "rejected"
+    },
+    {
+      "id": "s024",
+      "inSampleSharpe": 0.4,
+      "name": "Downside Cascade Brake",
+      "outOfSampleSharpe": -0.41,
+      "status": "rejected"
+    },
+    {
+      "id": "s025",
+      "inSampleSharpe": -0.94,
+      "name": "Month-Turn Rebalancing Window",
+      "outOfSampleSharpe": -2.06,
+      "status": "rejected"
+    },
+    {
+      "id": "s026",
+      "inSampleSharpe": 1.28,
+      "name": "Hourly EMA Crossover",
+      "outOfSampleSharpe": 1.46,
+      "status": "rejected"
+    },
+    {
+      "id": "s027",
+      "inSampleSharpe": 1.28,
+      "name": "Shock Exit, Reclaim Entry",
+      "outOfSampleSharpe": 0.92,
+      "status": "rejected"
+    },
+    {
+      "id": "s028",
+      "inSampleSharpe": 0.94,
+      "name": "Post-Expiry Continuation",
+      "outOfSampleSharpe": -2.4,
+      "status": "rejected"
+    },
+    {
+      "id": "s029",
+      "inSampleSharpe": 0.8,
+      "name": "Upside Squeeze Cooldown",
+      "outOfSampleSharpe": -0.13,
+      "status": "rejected"
+    },
+    {
+      "id": "s030",
+      "inSampleSharpe": 1.53,
+      "name": "Rolling VWAP Regime",
+      "outOfSampleSharpe": -1.68,
+      "status": "rejected"
+    },
+    {
+      "id": "s031",
+      "inSampleSharpe": 1.43,
+      "name": "Skipped-Day Momentum",
+      "outOfSampleSharpe": 2.94,
+      "status": "rejected"
+    },
+    {
+      "id": "s032",
+      "inSampleSharpe": -2.51,
+      "name": "Quiet-Flow VWAP Reversion",
+      "outOfSampleSharpe": -4.88,
+      "status": "rejected"
+    },
+    {
+      "id": "s034",
+      "inSampleSharpe": -0.99,
+      "name": "Funding-Clock Continuation",
+      "outOfSampleSharpe": -4.99,
+      "status": "rejected"
+    },
+    {
+      "id": "s035",
+      "inSampleSharpe": 1.12,
+      "name": "Daily Trend Regime",
+      "outOfSampleSharpe": 1.64,
+      "status": "rejected"
+    },
+    {
+      "id": "s036",
+      "inSampleSharpe": null,
+      "name": "Volatility-Scaled Drawdown Gate",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s037",
+      "inSampleSharpe": -1.43,
+      "name": "Weekly Reopen Gap Reversion",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s038",
+      "inSampleSharpe": -1.06,
+      "name": "CME Reopen Continuation",
+      "outOfSampleSharpe": -2.99,
+      "status": "rejected"
+    },
+    {
+      "id": "s039",
+      "inSampleSharpe": 1.65,
+      "name": "Peak-Drawdown Brake",
+      "outOfSampleSharpe": 2.87,
+      "status": "rejected"
+    },
+    {
+      "id": "s040",
+      "inSampleSharpe": null,
+      "name": "Weekly Band Rebalancer",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s041",
+      "inSampleSharpe": 2.01,
+      "name": "BTC Band Rebalancing",
+      "outOfSampleSharpe": 0.82,
+      "status": "rejected"
+    },
+    {
+      "id": "s042",
+      "inSampleSharpe": 1.73,
+      "name": "Left-Tail Skew Gate",
+      "outOfSampleSharpe": 2.16,
+      "status": "rejected"
+    },
+    {
+      "id": "s043",
+      "inSampleSharpe": 1.74,
+      "name": "Volatility Acceleration Brake",
+      "outOfSampleSharpe": -0.11,
+      "status": "rejected"
+    },
+    {
+      "id": "s044",
+      "inSampleSharpe": -1.17,
+      "name": "London Fixing Fade",
+      "outOfSampleSharpe": -1.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s045",
+      "inSampleSharpe": -3.86,
+      "name": "Quiet-to-Active Release",
+      "outOfSampleSharpe": -1.51,
+      "status": "rejected"
+    },
+    {
+      "id": "s046",
+      "inSampleSharpe": -4.45,
+      "name": "Quiet-Regime Breakout",
+      "outOfSampleSharpe": -6.0,
+      "status": "rejected"
+    },
+    {
+      "id": "s047",
+      "inSampleSharpe": 0.99,
+      "name": "Dual-Horizon Confirmation",
+      "outOfSampleSharpe": 1.42,
+      "status": "rejected"
+    },
+    {
+      "id": "s048",
+      "inSampleSharpe": 1.3,
+      "name": "Range-Acceptance Retest",
+      "outOfSampleSharpe": -2.43,
+      "status": "rejected"
+    },
+    {
+      "id": "s049",
+      "inSampleSharpe": 1.14,
+      "name": "Range Acceptance Retest",
+      "outOfSampleSharpe": -1.24,
+      "status": "rejected"
+    },
+    {
+      "id": "s050",
+      "inSampleSharpe": null,
+      "name": "UTC Mark Pressure Fade",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s051",
+      "inSampleSharpe": null,
+      "name": "Failed-Low Reclaim",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s052",
+      "inSampleSharpe": 0.68,
+      "name": "Autocorrelation State Filter",
+      "outOfSampleSharpe": 2.98,
+      "status": "rejected"
+    },
+    {
+      "id": "s053",
+      "inSampleSharpe": 1.04,
+      "name": "US Close Pressure Fade",
+      "outOfSampleSharpe": 1.34,
+      "status": "rejected"
+    },
+    {
+      "id": "s054",
+      "inSampleSharpe": 2.01,
+      "name": "EWMA Volatility Target",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s055",
+      "inSampleSharpe": -0.97,
+      "name": "Turnover Absorption",
+      "outOfSampleSharpe": 2.81,
+      "status": "rejected"
+    },
+    {
+      "id": "s056",
+      "inSampleSharpe": 2.02,
+      "name": "Continuous Volatility Budget",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s057",
+      "inSampleSharpe": -2.57,
+      "name": "Round-Number Support Reclaim",
+      "outOfSampleSharpe": -2.49,
+      "status": "rejected"
+    },
+    {
+      "id": "s058",
+      "inSampleSharpe": 1.82,
+      "name": "Downside Semivariance Gate",
+      "outOfSampleSharpe": 0.68,
+      "status": "rejected"
+    },
+    {
+      "id": "s059",
+      "inSampleSharpe": null,
+      "name": "Downside Volume Absorption",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s060",
+      "inSampleSharpe": 1.25,
+      "name": "Weekend Liquidity Avoidance",
+      "outOfSampleSharpe": -0.47,
+      "status": "rejected"
+    },
+    {
+      "id": "s061",
+      "inSampleSharpe": 1.38,
+      "name": "Weekend Liquidity Gate",
+      "outOfSampleSharpe": -0.49,
+      "status": "rejected"
+    },
+    {
+      "id": "s062",
+      "inSampleSharpe": 1.69,
+      "name": "Weekend Liquidity Risk Gate",
+      "outOfSampleSharpe": -0.19,
+      "status": "rejected"
+    },
+    {
+      "id": "s063",
+      "inSampleSharpe": -2.53,
+      "name": "Candle-Weighted Flow Imbalance",
+      "outOfSampleSharpe": -2.69,
+      "status": "rejected"
+    },
+    {
+      "id": "s064",
+      "inSampleSharpe": 0.04,
+      "name": "U.S. Cash-Flow Continuation",
+      "outOfSampleSharpe": 2.36,
+      "status": "rejected"
+    },
+    {
+      "id": "s065",
+      "inSampleSharpe": -0.52,
+      "name": "US Open Flow Continuation",
+      "outOfSampleSharpe": -0.65,
+      "status": "rejected"
+    },
+    {
+      "id": "s066",
+      "inSampleSharpe": 0.9,
+      "name": "US Open Flow Continuation",
+      "outOfSampleSharpe": -2.39,
+      "status": "rejected"
+    },
+    {
+      "id": "s067",
+      "inSampleSharpe": 0.17,
+      "name": "Low-Volume Pullback Reclaim",
+      "outOfSampleSharpe": 0.25,
+      "status": "rejected"
+    },
+    {
+      "id": "s068",
+      "inSampleSharpe": null,
+      "name": "Path-Efficiency Participation",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s069",
+      "inSampleSharpe": -0.9,
+      "name": "Month-End Rebalance Bid",
+      "outOfSampleSharpe": -1.81,
+      "status": "rejected"
+    },
+    {
+      "id": "s070",
+      "inSampleSharpe": 0.33,
+      "name": "Payday Flow Window",
+      "outOfSampleSharpe": -1.72,
+      "status": "rejected"
+    },
+    {
+      "id": "s071",
+      "inSampleSharpe": -2.12,
+      "name": "Asia-Europe Handoff Reversion",
+      "outOfSampleSharpe": -4.31,
+      "status": "rejected"
+    },
+    {
+      "id": "s072",
+      "inSampleSharpe": -1.79,
+      "name": "Weekly Clock Drift",
+      "outOfSampleSharpe": -1.38,
+      "status": "rejected"
+    },
+    {
+      "id": "s073",
+      "inSampleSharpe": 0.04,
+      "name": "Adaptive Weekly Seasonality",
+      "outOfSampleSharpe": -0.02,
+      "status": "rejected"
+    },
+    {
+      "id": "s074",
+      "inSampleSharpe": 1.37,
+      "name": "Weekly Options Hedge Unwind",
+      "outOfSampleSharpe": 0.95,
+      "status": "rejected"
+    },
+    {
+      "id": "s075",
+      "inSampleSharpe": -0.79,
+      "name": "Adaptive Turnover Gate",
+      "outOfSampleSharpe": -2.06,
+      "status": "rejected"
+    },
+    {
+      "id": "s076",
+      "inSampleSharpe": -0.05,
+      "name": "Positive-Squeeze Cooldown",
+      "outOfSampleSharpe": 0.47,
+      "status": "rejected"
+    },
+    {
+      "id": "s077",
+      "inSampleSharpe": 1.57,
+      "name": "Volatility-Scaled Impulse Hold",
+      "outOfSampleSharpe": -0.53,
+      "status": "rejected"
+    },
+    {
+      "id": "s078",
+      "inSampleSharpe": 1.29,
+      "name": "Outlier-Resistant Drift",
+      "outOfSampleSharpe": 0.9,
+      "status": "rejected"
+    },
+    {
+      "id": "s079",
+      "inSampleSharpe": -0.47,
+      "name": "Volume-Profile Migration",
+      "outOfSampleSharpe": 1.73,
+      "status": "rejected"
+    },
+    {
+      "id": "s080",
+      "inSampleSharpe": -2.07,
+      "name": "Rolling VWAP Reversion",
+      "outOfSampleSharpe": -3.26,
+      "status": "rejected"
+    },
+    {
+      "id": "s081",
+      "inSampleSharpe": -0.4,
+      "name": "Bull-Regime RSI Dip",
+      "outOfSampleSharpe": -2.89,
+      "status": "rejected"
+    },
+    {
+      "id": "s082",
+      "inSampleSharpe": -0.26,
+      "name": "Funding-Window Pressure Release",
+      "outOfSampleSharpe": -3.1,
+      "status": "rejected"
+    },
+    {
+      "id": "s083",
+      "inSampleSharpe": 1.8,
+      "name": "Multi-Day EMA Crossover",
+      "outOfSampleSharpe": 1.58,
+      "status": "rejected"
+    },
+    {
+      "id": "s084",
+      "inSampleSharpe": -1.47,
+      "name": "Price-Impact Liquidity Gate",
+      "outOfSampleSharpe": -3.45,
+      "status": "rejected"
+    },
+    {
+      "id": "s085",
+      "inSampleSharpe": 0.35,
+      "name": "Confirmed Swing Structure",
+      "outOfSampleSharpe": 1.38,
+      "status": "rejected"
+    },
+    {
+      "id": "s086",
+      "inSampleSharpe": 2.02,
+      "name": "Drawdown-Rebound Re-entry",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s087",
+      "inSampleSharpe": 1.23,
+      "name": "Trailing Exit Recovery",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s088",
+      "inSampleSharpe": null,
+      "name": "Drawdown Ratchet Re-entry",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s089",
+      "inSampleSharpe": null,
+      "name": "Passive Dip Inventory Capture",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s090",
+      "inSampleSharpe": -1.61,
+      "name": "CME Reopen Follow-Through",
+      "outOfSampleSharpe": -1.19,
+      "status": "rejected"
+    },
+    {
+      "id": "s091",
+      "inSampleSharpe": -2.49,
+      "name": "Compressed-Range Release",
+      "outOfSampleSharpe": -8.6,
+      "status": "rejected"
+    },
+    {
+      "id": "s092",
+      "inSampleSharpe": -0.25,
+      "name": "Liquidation-Flush Rebound",
+      "outOfSampleSharpe": -0.96,
+      "status": "rejected"
+    },
+    {
+      "id": "s093",
+      "inSampleSharpe": -0.2,
+      "name": "Squeeze Expansion Breakout",
+      "outOfSampleSharpe": -5.96,
+      "status": "rejected"
+    },
+    {
+      "id": "s094",
+      "inSampleSharpe": 0.11,
+      "name": "Compression Release Breakout",
+      "outOfSampleSharpe": 2.64,
+      "status": "rejected"
+    },
+    {
+      "id": "s095",
+      "inSampleSharpe": 1.42,
+      "name": "Skip-Lag Momentum",
+      "outOfSampleSharpe": 0.88,
+      "status": "rejected"
+    },
+    {
+      "id": "s096",
+      "inSampleSharpe": -0.03,
+      "name": "Cascade Reclaim",
+      "outOfSampleSharpe": -2.85,
+      "status": "rejected"
+    },
+    {
+      "id": "s097",
+      "inSampleSharpe": 1.95,
+      "name": "Band-Based Volatility Harvest",
+      "outOfSampleSharpe": 0.88,
+      "status": "rejected"
+    },
+    {
+      "id": "s098",
+      "inSampleSharpe": 1.5,
+      "name": "Stale-High Supply Clearance",
+      "outOfSampleSharpe": 1.81,
+      "status": "rejected"
+    },
+    {
+      "id": "s099",
+      "inSampleSharpe": 1.7,
+      "name": "Daily Volatility Budget",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s100",
+      "inSampleSharpe": 1.75,
+      "name": "Weekly Volatility Budget",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s101",
+      "inSampleSharpe": 1.98,
+      "name": "Capped Volatility Budget",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s102",
+      "inSampleSharpe": 1.79,
+      "name": "Daily Volatility Budget",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s103",
+      "inSampleSharpe": 2.01,
+      "name": "Downside Tail Concentration Gate",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s104",
+      "inSampleSharpe": 1.47,
+      "name": "Semivariance Asymmetry",
+      "outOfSampleSharpe": 1.4,
+      "status": "rejected"
+    },
+    {
+      "id": "s105",
+      "inSampleSharpe": 0.71,
+      "name": "U.S. Close Pressure Fade",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s106",
+      "inSampleSharpe": -1.22,
+      "name": "Close-Location Flow Pressure",
+      "outOfSampleSharpe": 2.0,
+      "status": "rejected"
+    },
+    {
+      "id": "s107",
+      "inSampleSharpe": -5.36,
+      "name": "Signed-Volume Pressure",
+      "outOfSampleSharpe": -13.54,
+      "status": "rejected"
+    },
+    {
+      "id": "s108",
+      "inSampleSharpe": -1.93,
+      "name": "Absorption Reclaim",
+      "outOfSampleSharpe": -0.49,
+      "status": "rejected"
+    },
+    {
+      "id": "s109",
+      "inSampleSharpe": -6.17,
+      "name": "Round-Number Defense",
+      "outOfSampleSharpe": -6.5,
+      "status": "rejected"
+    },
+    {
+      "id": "s110",
+      "inSampleSharpe": 0.71,
+      "name": "Prior-Day Low Sweep",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s111",
+      "inSampleSharpe": 1.78,
+      "name": "Month-End Rebalance Pause",
+      "outOfSampleSharpe": 0.88,
+      "status": "rejected"
+    },
+    {
+      "id": "s112",
+      "inSampleSharpe": -1.2,
+      "name": "Month-End Rebalance Snapback",
+      "outOfSampleSharpe": -3.74,
+      "status": "rejected"
+    },
+    {
+      "id": "s113",
+      "inSampleSharpe": 1.22,
+      "name": "Efficient-Path Drift",
+      "outOfSampleSharpe": 2.61,
+      "status": "rejected"
+    },
+    {
+      "id": "s114",
+      "inSampleSharpe": -0.09,
+      "name": "Stabilized Selloff Recovery",
+      "outOfSampleSharpe": -3.16,
+      "status": "rejected"
+    },
+    {
+      "id": "s115",
+      "inSampleSharpe": 0.01,
+      "name": "U.S. Close Flow Drift",
+      "outOfSampleSharpe": 2.28,
+      "status": "rejected"
+    },
+    {
+      "id": "s116",
+      "inSampleSharpe": -1.23,
+      "name": "Claims-Release Continuation",
+      "outOfSampleSharpe": -2.22,
+      "status": "rejected"
+    },
+    {
+      "id": "s117",
+      "inSampleSharpe": 0.33,
+      "name": "Weekly Expiry Release",
+      "outOfSampleSharpe": 0.51,
+      "status": "rejected"
+    },
+    {
+      "id": "s118",
+      "inSampleSharpe": -0.38,
+      "name": "U.S. Open Flow Drift",
+      "outOfSampleSharpe": -1.72,
+      "status": "rejected"
+    },
+    {
+      "id": "s119",
+      "inSampleSharpe": 1.44,
+      "name": "Weekend Liquidity Avoidance",
+      "outOfSampleSharpe": -0.47,
+      "status": "rejected"
+    },
+    {
+      "id": "s120",
+      "inSampleSharpe": 1.22,
+      "name": "Weekend Liquidity Avoidance",
+      "outOfSampleSharpe": -1.03,
+      "status": "rejected"
+    },
+    {
+      "id": "s121",
+      "inSampleSharpe": -2.2,
+      "name": "Europe Handoff Bounce",
+      "outOfSampleSharpe": -4.07,
+      "status": "rejected"
+    },
+    {
+      "id": "s122",
+      "inSampleSharpe": -0.41,
+      "name": "U.S. Open Flow Continuation",
+      "outOfSampleSharpe": 0.22,
+      "status": "rejected"
+    },
+    {
+      "id": "s123",
+      "inSampleSharpe": -0.31,
+      "name": "U.S. Open Flow Carry",
+      "outOfSampleSharpe": 0.37,
+      "status": "rejected"
+    },
+    {
+      "id": "s124",
+      "inSampleSharpe": -0.37,
+      "name": "Asian-Morning Pressure Fade",
+      "outOfSampleSharpe": -3.79,
+      "status": "rejected"
+    },
+    {
+      "id": "s125",
+      "inSampleSharpe": -2.1,
+      "name": "Rolling VWAP Reversion",
+      "outOfSampleSharpe": -4.24,
+      "status": "rejected"
+    },
+    {
+      "id": "s126",
+      "inSampleSharpe": 1.97,
+      "name": "Payday Demand Sleeve",
+      "outOfSampleSharpe": 0.6,
+      "status": "rejected"
+    },
+    {
+      "id": "s127",
+      "inSampleSharpe": 0.48,
+      "name": "Funding-Window Inventory Reversal",
+      "outOfSampleSharpe": -1.99,
+      "status": "rejected"
+    },
+    {
+      "id": "s128",
+      "inSampleSharpe": null,
+      "name": "Funding-Window Selloff Fade",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s129",
+      "inSampleSharpe": -2.89,
+      "name": "London Fix Selloff Fade",
+      "outOfSampleSharpe": -2.4,
+      "status": "rejected"
+    },
+    {
+      "id": "s130",
+      "inSampleSharpe": -1.02,
+      "name": "Funding-Settlement Rebound",
+      "outOfSampleSharpe": -1.63,
+      "status": "rejected"
+    },
+    {
+      "id": "s131",
+      "inSampleSharpe": -1.69,
+      "name": "Failed Breakout Reclaim",
+      "outOfSampleSharpe": -1.03,
+      "status": "rejected"
+    },
+    {
+      "id": "s132",
+      "inSampleSharpe": 1.15,
+      "name": "Volatility Ratchet",
+      "outOfSampleSharpe": 0.71,
+      "status": "rejected"
+    },
+    {
+      "id": "s133",
+      "inSampleSharpe": 1.97,
+      "name": "Two-Horizon Trend State",
+      "outOfSampleSharpe": 1.38,
+      "status": "rejected"
+    },
+    {
+      "id": "s134",
+      "inSampleSharpe": 1.59,
+      "name": "Daily EMA Trend State",
+      "outOfSampleSharpe": 1.82,
+      "status": "rejected"
+    },
+    {
+      "id": "s135",
+      "inSampleSharpe": -0.73,
+      "name": "Trend-Conditioned Pullback Re-entry",
+      "outOfSampleSharpe": -2.14,
+      "status": "rejected"
+    },
+    {
+      "id": "s136",
+      "inSampleSharpe": -1.11,
+      "name": "CME Reopening Gap Recovery",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s137",
+      "inSampleSharpe": 0.76,
+      "name": "Downside Impact Gate",
+      "outOfSampleSharpe": 1.7,
+      "status": "rejected"
+    },
+    {
+      "id": "s138",
+      "inSampleSharpe": -0.84,
+      "name": "Compression-Release Breakout",
+      "outOfSampleSharpe": -7.85,
+      "status": "rejected"
+    },
+    {
+      "id": "s139",
+      "inSampleSharpe": -3.3,
+      "name": "Compression Release Breakout",
+      "outOfSampleSharpe": -1.95,
+      "status": "rejected"
+    },
+    {
+      "id": "s140",
+      "inSampleSharpe": 0.15,
+      "name": "Compressed-Range Release",
+      "outOfSampleSharpe": -6.68,
+      "status": "rejected"
+    },
+    {
+      "id": "s141",
+      "inSampleSharpe": 1.96,
+      "name": "Upside Burst Cooldown",
+      "outOfSampleSharpe": -0.09,
+      "status": "rejected"
+    },
+    {
+      "id": "s142",
+      "inSampleSharpe": 1.8,
+      "name": "Core-Satellite Volatility Harvest",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s143",
+      "inSampleSharpe": 1.74,
+      "name": "Upside Burst Cooldown",
+      "outOfSampleSharpe": 0.47,
+      "status": "rejected"
+    },
+    {
+      "id": "s144",
+      "inSampleSharpe": null,
+      "name": "Band Rebalancing",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s145",
+      "inSampleSharpe": 1.43,
+      "name": "Skip-Window Momentum Gate",
+      "outOfSampleSharpe": -1.6,
+      "status": "rejected"
+    },
+    {
+      "id": "s146",
+      "inSampleSharpe": 2.02,
+      "name": "Weekly Volatility Scaling",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s147",
+      "inSampleSharpe": 1.98,
+      "name": "Daily Volatility Budget",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s148",
+      "inSampleSharpe": 1.51,
+      "name": "Downside Variance Balance",
+      "outOfSampleSharpe": 1.25,
+      "status": "rejected"
+    },
+    {
+      "id": "s149",
+      "inSampleSharpe": 1.98,
+      "name": "Inverse-Volatility Exposure",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s150",
+      "inSampleSharpe": 1.38,
+      "name": "Downside Variance Asymmetry",
+      "outOfSampleSharpe": 0.75,
+      "status": "rejected"
+    },
+    {
+      "id": "s151",
+      "inSampleSharpe": 1.3,
+      "name": "Downside Variance Hysteresis",
+      "outOfSampleSharpe": 1.95,
+      "status": "rejected"
+    },
+    {
+      "id": "s152",
+      "inSampleSharpe": -0.19,
+      "name": "Signed-Flow Persistence",
+      "outOfSampleSharpe": 0.44,
+      "status": "rejected"
+    },
+    {
+      "id": "s153",
+      "inSampleSharpe": -3.0,
+      "name": "Quiet Sell-Pressure Absorption",
+      "outOfSampleSharpe": -7.07,
+      "status": "rejected"
+    },
+    {
+      "id": "s154",
+      "inSampleSharpe": -0.82,
+      "name": "Persistent Signed-Volume Flow",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s155",
+      "inSampleSharpe": 1.56,
+      "name": "Downside Jump Cooldown",
+      "outOfSampleSharpe": 1.96,
+      "status": "rejected"
+    },
+    {
+      "id": "s156",
+      "inSampleSharpe": -3.97,
+      "name": "Bid-Absorption Reversal",
+      "outOfSampleSharpe": -4.25,
+      "status": "rejected"
+    },
+    {
+      "id": "s157",
+      "inSampleSharpe": -0.77,
+      "name": "Round-Number Sweep Reclaim",
+      "outOfSampleSharpe": -1.67,
+      "status": "rejected"
+    },
+    {
+      "id": "s158",
+      "inSampleSharpe": -1.48,
+      "name": "Month-Turn Rebound",
+      "outOfSampleSharpe": -0.08,
+      "status": "rejected"
+    },
+    {
+      "id": "s159",
+      "inSampleSharpe": -0.27,
+      "name": "Post-Expiry Strength",
+      "outOfSampleSharpe": -0.41,
+      "status": "rejected"
+    },
+    {
+      "id": "s160",
+      "inSampleSharpe": null,
+      "name": "Weekly Expiry Hedge Unwind",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s161",
+      "inSampleSharpe": 1.25,
+      "name": "Post-Expiry Range Break",
+      "outOfSampleSharpe": -0.55,
+      "status": "rejected"
+    },
+    {
+      "id": "s162",
+      "inSampleSharpe": -0.63,
+      "name": "Weekly Expiry Unwind",
+      "outOfSampleSharpe": 0.72,
+      "status": "rejected"
+    },
+    {
+      "id": "s163",
+      "inSampleSharpe": 1.37,
+      "name": "Weekday Liquidity Exposure",
+      "outOfSampleSharpe": -0.5,
+      "status": "rejected"
+    },
+    {
+      "id": "s164",
+      "inSampleSharpe": 1.31,
+      "name": "Weekend Exposure Avoidance",
+      "outOfSampleSharpe": -0.47,
+      "status": "rejected"
+    },
+    {
+      "id": "s165",
+      "inSampleSharpe": 1.29,
+      "name": "Weekend Drift Continuation",
+      "outOfSampleSharpe": 1.49,
+      "status": "rejected"
+    },
+    {
+      "id": "s166",
+      "inSampleSharpe": 1.36,
+      "name": "Weekend Liquidity Avoidance",
+      "outOfSampleSharpe": -0.47,
+      "status": "rejected"
+    },
+    {
+      "id": "s167",
+      "inSampleSharpe": -1.2,
+      "name": "US-Open Impulse Continuation",
+      "outOfSampleSharpe": -1.28,
+      "status": "rejected"
+    },
+    {
+      "id": "s168",
+      "inSampleSharpe": -0.39,
+      "name": "US Session Flow Carry",
+      "outOfSampleSharpe": -1.46,
+      "status": "rejected"
+    },
+    {
+      "id": "s169",
+      "inSampleSharpe": -2.6,
+      "name": "Session-Relative Drift",
+      "outOfSampleSharpe": -1.62,
+      "status": "rejected"
+    },
+    {
+      "id": "s170",
+      "inSampleSharpe": -2.23,
+      "name": "US Cash-Session Exposure",
+      "outOfSampleSharpe": -2.32,
+      "status": "rejected"
+    },
+    {
+      "id": "s171",
+      "inSampleSharpe": -5.31,
+      "name": "Rolling VWAP Dislocation",
+      "outOfSampleSharpe": -8.72,
+      "status": "rejected"
+    },
+    {
+      "id": "s172",
+      "inSampleSharpe": 0.25,
+      "name": "Multi-Day Drawdown Bounce",
+      "outOfSampleSharpe": -2.24,
+      "status": "rejected"
+    },
+    {
+      "id": "s173",
+      "inSampleSharpe": -4.71,
+      "name": "London Fix Pressure Fade",
+      "outOfSampleSharpe": -4.6,
+      "status": "rejected"
+    },
+    {
+      "id": "s174",
+      "inSampleSharpe": -0.0,
+      "name": "Serial-Correlation Regime",
+      "outOfSampleSharpe": -1.72,
+      "status": "rejected"
+    },
+    {
+      "id": "s175",
+      "inSampleSharpe": -0.48,
+      "name": "Squeeze Continuation",
+      "outOfSampleSharpe": -1.52,
+      "status": "rejected"
+    },
+    {
+      "id": "s176",
+      "inSampleSharpe": 2.14,
+      "name": "Multiweek Cost-Basis Reclaim",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s177",
+      "inSampleSharpe": -0.81,
+      "name": "Funding-Clock Relief Bounce",
+      "outOfSampleSharpe": -4.23,
+      "status": "rejected"
+    },
+    {
+      "id": "s178",
+      "inSampleSharpe": -1.39,
+      "name": "Funding-Window Rebound",
+      "outOfSampleSharpe": -3.11,
+      "status": "rejected"
+    },
+    {
+      "id": "s179",
+      "inSampleSharpe": -0.35,
+      "name": "Funding-Window Flush Reversal",
+      "outOfSampleSharpe": -4.19,
+      "status": "rejected"
+    },
+    {
+      "id": "s180",
+      "inSampleSharpe": -1.7,
+      "name": "Trend Pullback Reclaim",
+      "outOfSampleSharpe": -0.0,
+      "status": "rejected"
+    },
+    {
+      "id": "s181",
+      "inSampleSharpe": -0.07,
+      "name": "Trend Pullback Reclaim",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s182",
+      "inSampleSharpe": -0.12,
+      "name": "Trend-Filtered Dip Reentry",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s183",
+      "inSampleSharpe": -0.76,
+      "name": "Trend-Gated Pullback Reclaim",
+      "outOfSampleSharpe": -1.64,
+      "status": "rejected"
+    },
+    {
+      "id": "s184",
+      "inSampleSharpe": 1.92,
+      "name": "Weekend Reopen Gap Fade",
+      "outOfSampleSharpe": 0.77,
+      "status": "rejected"
+    },
+    {
+      "id": "s185",
+      "inSampleSharpe": 1.74,
+      "name": "Liquidity Stress Gate",
+      "outOfSampleSharpe": 0.61,
+      "status": "rejected"
+    },
+    {
+      "id": "s186",
+      "inSampleSharpe": -1.32,
+      "name": "CME Weekend Gap Reclaim",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s187",
+      "inSampleSharpe": -0.52,
+      "name": "Compression-Range Breakout",
+      "outOfSampleSharpe": -1.58,
+      "status": "rejected"
+    },
+    {
+      "id": "s188",
+      "inSampleSharpe": 2.02,
+      "name": "Fixed-Weight Volatility Harvest",
+      "outOfSampleSharpe": 0.82,
+      "status": "rejected"
+    },
+    {
+      "id": "s189",
+      "inSampleSharpe": -0.81,
+      "name": "Compression Range Escape",
+      "outOfSampleSharpe": 2.34,
+      "status": "rejected"
+    },
+    {
+      "id": "s190",
+      "inSampleSharpe": 0.61,
+      "name": "Compression Range Breakout",
+      "outOfSampleSharpe": -1.98,
+      "status": "rejected"
+    },
+    {
+      "id": "s191",
+      "inSampleSharpe": 1.23,
+      "name": "Five-Day Momentum Hysteresis",
+      "outOfSampleSharpe": 2.08,
+      "status": "rejected"
+    },
+    {
+      "id": "s192",
+      "inSampleSharpe": 1.1,
+      "name": "Ten-Day Channel Trend",
+      "outOfSampleSharpe": 2.45,
+      "status": "rejected"
+    },
+    {
+      "id": "s193",
+      "inSampleSharpe": 0.97,
+      "name": "Multi-Day EMA Regime",
+      "outOfSampleSharpe": 1.49,
+      "status": "rejected"
+    },
+    {
+      "id": "s194",
+      "inSampleSharpe": 1.79,
+      "name": "Inverse-Variance Risk Budget",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s195",
+      "inSampleSharpe": 1.97,
+      "name": "Volatility-Scaled Spot Exposure",
+      "outOfSampleSharpe": 0.83,
+      "status": "rejected"
+    },
+    {
+      "id": "s196",
+      "inSampleSharpe": 1.24,
+      "name": "Hysteretic Volatility Brake",
+      "outOfSampleSharpe": -0.89,
+      "status": "rejected"
+    },
+    {
+      "id": "s197",
+      "inSampleSharpe": 1.2,
+      "name": "Realized-Variance Gate",
+      "outOfSampleSharpe": -0.36,
+      "status": "rejected"
+    },
+    {
+      "id": "s198",
+      "inSampleSharpe": 0.15,
+      "name": "Rolling Signed-Flow Persistence",
+      "outOfSampleSharpe": 0.31,
+      "status": "rejected"
+    },
+    {
+      "id": "s199",
+      "inSampleSharpe": 1.28,
+      "name": "Cascade Cooldown Exit",
+      "outOfSampleSharpe": 0.29,
+      "status": "rejected"
+    },
+    {
+      "id": "s200",
+      "inSampleSharpe": 1.97,
+      "name": "Month-End Winner Rebalance",
+      "outOfSampleSharpe": 0.84,
+      "status": "rejected"
+    }
+  ],
+  "buyHoldInSampleSharpe": 2.02,
+  "buyHoldOutOfSampleSharpe": 0.81,
+  "deflatedSharpe": {
+    "best": "s176",
+    "bestInSampleSharpe": 2.14,
+    "luckThresholdSharpe": 4.54,
+    "probability": 0.0,
+    "trials": 188
+  },
+  "examples": [
+    {
+      "critic": "Reject: the evidence is too sparse and lacks walk-forward validation, while the strategy substantially underperforms buy-and-hold. A lower drawdown and marginally higher Sharpe do not establish a reliable alternative on this evidence.",
+      "hypothesis": null,
+      "inSampleSharpe": 2.14,
+      "name": "Multiweek Cost-Basis Reclaim",
+      "outOfSampleSharpe": 0.83
+    },
+    {
+      "critic": "The backtest does not beat buy-and-hold or demonstrate a compelling risk-adjusted alternative, and it has too few trades to support the claimed volatility-harvesting edge.",
+      "hypothesis": "A constant-mix rule may harvest BTC’s frequent swings by trimming after advances and adding after declines, while remaining mostly invested. It has an edge only if that volatility-harvesting benefit exceeds trend drag and trading costs.",
+      "inSampleSharpe": 2.02,
+      "name": "Fixed-Weight Volatility Harvest",
+      "outOfSampleSharpe": 0.82
+    },
+    {
+      "critic": "Reject: this is effectively a buy-and-hold result, with no meaningful rebalancing trades and no advantage over simply holding BTC.",
+      "hypothesis": "BTC volatility clusters, so recent realized volatility may help forecast near-term risk. Continuously scaling spot exposure inversely to that forecast tests whether a steady risk budget can improve compounding versus an all-or-nothing volatility brake, while retaining a material long allocation.",
+      "inSampleSharpe": 2.02,
+      "name": "Continuous Volatility Budget",
+      "outOfSampleSharpe": 0.83
+    }
+  ],
+  "funnel": {
+    "beatBuyHold": 0,
+    "compiled": 200,
+    "passedCritic": 0,
+    "proposed": 200,
+    "ran": 199
+  },
+  "model": "gpt-6-luna",
+  "placeholder": false,
+  "spentUsd": 1.47,
+  "stopped": "finished all 200 attempts",
+  "strategies": [],
+  "test": {
+    "from": "2026-06-01",
+    "to": "2026-08-31"
+  },
+  "train": {
+    "from": "2023-01-01",
+    "to": "2024-12-31"
+  }
+}

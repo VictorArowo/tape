@@ -245,14 +245,14 @@
           <h2>Can an AI find a strategy that survives?</h2>
           <span class="placeholder-flag" hidden>Placeholder data</span>
         </div>
-        <p class="section-intro">AI agents searched for trading strategies in a loop, with tape as the referee. They trained on <span data-bind="train"></span> and never saw <span data-bind="test"></span> until the final exam.</p>
+        <p class="section-intro">AI agents searched for trading strategies in a loop, with tape as the referee. They trained on <span data-bind="train"></span> and never saw <span data-bind="test"></span> until the final exam. <span data-bind="cutoffNote"></span></p>
 
         <ol class="steps">
           <li><strong>Propose.</strong> A researcher agent suggests a trading idea.</li>
           <li><strong>Write.</strong> A coding agent turns it into a strategy, compiled to WebAssembly and run in a sandbox with no clock, network or files.</li>
           <li><strong>Test.</strong> tape backtests it on the training period only.</li>
           <li><strong>Critique.</strong> A critic agent looks for leaks and overfitting, then sends the strategy back or rejects it.</li>
-          <li><strong>Final exam.</strong> The survivors run once on data no agent has seen, against buy-and-hold.</li>
+          <li><strong>Final exam.</strong> Every strategy runs once on data no agent has seen, against buy-and-hold. Only strategies the critic passed can count as a success.</li>
         </ol>
 
         <div class="funnel">
@@ -260,12 +260,14 @@
           <div class="figure"><span class="figure-value" data-bind="funnel.compiled"></span><span class="figure-label">compiled</span></div>
           <div class="figure"><span class="figure-value" data-bind="funnel.ran"></span><span class="figure-label">ran without crashing</span></div>
           <div class="figure"><span class="figure-value" data-bind="funnel.passedCritic"></span><span class="figure-label">passed the critic</span></div>
-          <div class="figure"><span class="figure-value" data-bind="funnel.beatBuyHold"></span><span class="figure-label">beat buy-and-hold on unseen data</span></div>
+          <div class="figure"><span class="figure-value" data-bind="funnel.beatBuyHold"></span><span class="figure-label">passed the critic and beat buy-and-hold on unseen data</span></div>
         </div>
 
         <h3 class="chart-title">Training results versus the final exam</h3>
         <p class="chart-sub" data-bind="scatterSub">Each dot is a strategy. If backtests told the truth, dots would sit on the diagonal.</p>
         <div class="chart-host" id="experiment-chart"></div>
+        <p class="note" data-bind="noiseNote"></p>
+        <p class="note">Strategies that traded a lot lost in both periods. The tight cluster around buy-and-hold's own scores is mostly strategies that barely traded at all: buy-and-hold in disguise. Nothing showed an edge beyond owning bitcoin.</p>
 
         <div class="luck" data-luck hidden>
           <h3 class="chart-title">Was the best one just lucky?</h3>
@@ -281,7 +283,7 @@
         <h3 class="chart-title">From the lab notebook</h3>
         <ul class="notebook" data-bind-list="examples"></ul>
 
-        <p>Every attempt was counted, because trying hundreds of ideas and keeping the best one is its own kind of cheating.</p>
+        <p>Every attempt was counted, because trying hundreds of ideas and keeping the best one is its own kind of cheating. And every result is reproducible: re-running all of the strategies from their saved WebAssembly gave bit-identical results.</p>
         <p class="run-meta" data-bind="runMeta"></p>
       </div>
     </section>

@@ -21,19 +21,6 @@ function flag(section, data) {
   if (text) badge.textContent = text;
 }
 
-function correlation(points) {
-  const n = points.length;
-  if (n < 3) return null;
-  const mx = points.reduce((a, p) => a + p.x, 0) / n;
-  const my = points.reduce((a, p) => a + p.y, 0) / n;
-  let sxy = 0, sxx = 0, syy = 0;
-  for (const p of points) {
-    sxy += (p.x - mx) * (p.y - my);
-    sxx += (p.x - mx) ** 2;
-    syy += (p.y - my) ** 2;
-  }
-  return sxx && syy ? sxy / Math.sqrt(sxx * syy) : null;
-}
 
 async function load(name) {
   const res = await fetch(`data/results/${name}.json`);
@@ -152,6 +139,16 @@ function ladder(section, data) {
   bind(container, { ladderNote: note });
 }
 
+// Knowledge cutoffs for models the lab has used, so the page can say when
+// the test period is safely after anything the model could have memorised.
+const MODEL_CUTOFFS = { "gpt-6-luna": "2026-05-18" };
+
+function monthsBetween(from, to) {
+  const [fy, fm] = from.split("-").map(Number);
+  const [ty, tm] = to.split("-").map(Number);
+  return (ty - fy) * 12 + (tm - fm) + 1;
+}
+
 // The deflated Sharpe probability is the verdict; the thresholds explain it.
 function luckNote(ds) {
   const tries = `${fmt.count(ds.trials)} tries`;
@@ -172,10 +169,15 @@ async function experiment() {
   flag(section, data);
 
   const range = (r) => `${fmt.date(r.from)} to ${fmt.date(r.to)}`;
+  const cutoff = MODEL_CUTOFFS[data.model];
   const f = data.funnel;
   const values = {
     train: range(data.train),
     test: range(data.test),
+    cutoffNote:
+      cutoff && data.test.from > cutoff
+        ? `The test period starts after the model's knowledge cutoff of ${fmt.date(cutoff)}, so it can't have memorised what happened.`
+        : "",
     "funnel.proposed": fmt.count(f.proposed),
     "funnel.compiled": fmt.count(f.compiled),
     "funnel.ran": fmt.count(f.ran ?? f.compiled),
@@ -195,10 +197,8 @@ async function experiment() {
     { key: "rejected", label: "Rejected by the critic", color: colors.rejected, hollow: true },
   ].filter((g) => plottable.some((s) => groupOf(s) === g.key));
 
-  const r = correlation(plottable.map((s) => ({ x: s.inSampleSharpe, y: s.outOfSampleSharpe })));
   values.scatterSub =
     `Each dot is a strategy that ran. If backtests told the truth, dots would sit on the diagonal.` +
-    (r != null ? ` The correlation between training and final-exam scores is ${fmt.ratio(r)}.` : "") +
     (unplotted > 0 ? ` Not shown: ${fmt.count(unplotted)} ${unplotted === 1 ? "strategy" : "strategies"} without both scores.` : "");
 
   const host = section.querySelector("#experiment-chart");
@@ -216,6 +216,13 @@ async function experiment() {
         : null,
     ariaLabel: `Scatter plot of ${plottable.length} strategies. ${f.beatBuyHold} passed the critic and beat buy-and-hold on unseen data.`,
   });
+  // Scoring above buy-and-hold in a short test is common by chance alone.
+  const above = plottable.filter((s) => s.outOfSampleSharpe > bh);
+  const months = monthsBetween(data.test.from, data.test.to);
+  values.noiseNote =
+    above.length && !f.beatBuyHold
+      ? `${fmt.count(above.length)} of ${fmt.count(plottable.length)} strategies scored above buy-and-hold in the ${months}-month test, but none passed the critic. Over a test that short, with scores this spread out, that's what noise looks like, not an edge.`
+      : "";
   if (pinned > 0) {
     values.scatterSub += ` ${pinned === 1 ? "One extreme result is" : `${fmt.count(pinned)} extreme results are`} pinned to the edge; hover for the real value.`;
   }
@@ -234,7 +241,8 @@ async function experiment() {
       "luck.bestLabel": `best Sharpe ratio in training (${pool.find((s) => s.id === ds.best)?.name ?? ds.best})`,
       "luck.threshold": fmt.ratio(ds.luckThresholdSharpe),
       "luck.thresholdLabel": `the best of ${fmt.count(ds.trials)} skill-less tries, by luck alone`,
-      "luck.probability": ds.probability == null ? "Not enough data" : `${Math.round(ds.probability * 100)}%`,
+      "luck.probability":
+        ds.probability == null ? "Not enough data" : ds.probability < 0.005 ? "<1%" : ds.probability > 0.995 ? ">99%" : `${Math.round(ds.probability * 100)}%`,
       "luck.note": luckNote(ds),
     });
   }
@@ -253,7 +261,8 @@ async function experiment() {
       const name = document.createElement("h4");
       name.textContent = e.name;
       const idea = document.createElement("p");
-      idea.textContent = e.hypothesis;
+      idea.textContent = e.hypothesis ?? "";
+      idea.hidden = !e.hypothesis;
       const scores = document.createElement("p");
       scores.className = "notebook-scores";
       scores.textContent = `Sharpe ${fmt.ratio(e.inSampleSharpe)} in training, ${fmt.ratio(e.outOfSampleSharpe)} in the final exam`;
