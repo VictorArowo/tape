@@ -1,4 +1,5 @@
 mod compare;
+mod lab;
 mod run;
 
 use std::path::PathBuf;
@@ -34,6 +35,16 @@ enum Command {
     /// Show how much of a strategy's backtest survives realistic
     /// execution, one assumption at a time.
     Compare(compare::CompareArgs),
+    /// AI agents that propose, write and test strategies.
+    #[command(subcommand)]
+    Lab(LabCommand),
+}
+
+#[derive(Subcommand)]
+enum LabCommand {
+    /// Run an experiment: ideas, code, backtests and critiques on the
+    /// training period, then one look at the held-out test period.
+    Run(lab::LabArgs),
 }
 
 #[derive(Subcommand)]
@@ -143,6 +154,14 @@ fn main() -> Result<()> {
             let from = parse_month(args.from())?;
             let to = args.to().map(parse_month).transpose()?.unwrap_or(from);
             run::run(&cli.data_dir, args, months(from, to)?)
+        }
+        Command::Lab(LabCommand::Run(args)) => {
+            let span = |from: &str, to: &str| -> Result<Vec<Period>> {
+                months(parse_month(from)?, parse_month(to)?)
+            };
+            let train = span(&args.train_from, &args.train_to)?;
+            let test = span(&args.test_from, &args.test_to)?;
+            lab::lab(&cli.data_dir, args, train, test)
         }
         Command::Compare(args) => {
             let from = parse_month(&args.from)?;

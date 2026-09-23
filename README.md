@@ -22,7 +22,7 @@ Early. Research and paper trading only.
 | M2 Engine, execution model, portfolio, metrics, CLI | done |
 | M3 Honest vs naive backtest comparison | done |
 | M4 WebAssembly strategy sandbox | done |
-| M5 Agent research desk | |
+| M5 Agent research desk | built; pilot run pending |
 | M6 Web demo and write-up | |
 
 ## Layout
@@ -36,6 +36,7 @@ crates/
   tape-strategies  reference strategies (buy and hold, moving-average crossover)
   tape-guest       SDK for strategies compiled to WebAssembly
   tape-wasm        the sandbox that runs them: capability, compute and memory limits
+  tape-lab         the AI research desk: propose, write, backtest, critique, then one held-out test
   tape-cli         the `tape` command
 guests/
   sma-cross        the reference crossover, compiled for the sandbox

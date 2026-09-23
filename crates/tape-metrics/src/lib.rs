@@ -8,6 +8,8 @@
 //! annualized with a periods-per-year figure; crypto trades every day, so
 //! daily data uses 365. The risk-free rate is taken as zero.
 
+pub mod deflated;
+
 use serde::{Deserialize, Serialize};
 use tape_core::{TimeDelta, Timestamp};
 use tape_engine::EquityPoint;
@@ -75,6 +77,19 @@ fn resample(equity: &[EquityPoint], length: TimeDelta) -> Vec<f64> {
     out
 }
 
+/// Simple returns over fixed periods: the ones the ratios in [`compute`]
+/// are based on.
+pub fn period_returns(equity: &[EquityPoint], length: TimeDelta) -> Vec<f64> {
+    if equity.is_empty() {
+        return Vec::new();
+    }
+    resample(equity, length)
+        .windows(2)
+        .filter(|w| w[0] > 0.0)
+        .map(|w| w[1] / w[0] - 1.0)
+        .collect()
+}
+
 fn mean(xs: &[f64]) -> f64 {
     xs.iter().sum::<f64>() / xs.len() as f64
 }
@@ -119,12 +134,7 @@ pub fn compute(equity: &[EquityPoint], periods: Periods) -> Option<Metrics> {
     let annualized_return = (years >= 1.0 / 365.0 && initial > 0.0 && final_ > 0.0)
         .then(|| (final_ / initial).powf(1.0 / years) - 1.0);
 
-    let closes = resample(equity, periods.length);
-    let returns: Vec<f64> = closes
-        .windows(2)
-        .filter(|w| w[0] > 0.0)
-        .map(|w| w[1] / w[0] - 1.0)
-        .collect();
+    let returns = period_returns(equity, periods.length);
     let scale = periods.per_year.sqrt();
     let (annualized_volatility, sharpe, sortino) = if returns.len() >= 2 {
         let (m, sd) = (mean(&returns), std_dev(&returns));

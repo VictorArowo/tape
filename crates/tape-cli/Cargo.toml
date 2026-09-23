@@ -21,6 +21,7 @@ tape-metrics = { version = "0.1.0", path = "../tape-metrics" }
 tape-strategies = { version = "0.1.0", path = "../tape-strategies" }
 serde_json.workspace = true
 tape-wasm = { version = "0.1.0", path = "../tape-wasm" }
+tape-lab = { version = "0.1.0", path = "../tape-lab" }
 
 [lints]
 workspace = true

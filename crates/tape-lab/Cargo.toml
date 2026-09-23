@@ -1,0 +1,25 @@
+[package]
+name = "tape-lab"
+description = "AI agents that propose, write and test trading strategies, kept honest by a sandbox and a held-out test period"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tape-core = { version = "0.1.0", path = "../tape-core" }
+tape-data = { version = "0.1.0", path = "../tape-data" }
+tape-engine = { version = "0.1.0", path = "../tape-engine" }
+tape-metrics = { version = "0.1.0", path = "../tape-metrics" }
+tape-wasm = { version = "0.1.0", path = "../tape-wasm" }
+ureq = { version = "3.4.2", features = ["json"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

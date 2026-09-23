@@ -3,3 +3,4 @@
 *.parquet
 .DS_Store
 .claude/
+.env
