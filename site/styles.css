@@ -418,6 +418,7 @@ h3.chart-title {
 .slider output { color: var(--text); font-variant-numeric: tabular-nums; }
 .check { display: flex; align-items: center; gap: 0.6rem; font-size: 0.9375rem; color: var(--muted); align-self: end; }
 .check input { accent-color: var(--mark); width: 1.05rem; height: 1.05rem; }
+.check[hidden] { display: none; }
 
 .demo-submit { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem 1.5rem; margin-top: 1.75rem; }
 .demo-meta { color: var(--muted); font-size: 0.9375rem; }
