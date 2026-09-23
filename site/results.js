@@ -137,7 +137,12 @@ function ladder(section, data) {
 // The deflated Sharpe probability is the verdict; the thresholds explain it.
 function luckNote(ds) {
   const tries = `${fmt.count(ds.trials)} tries`;
-  if (ds.probability == null) return "";
+  if (ds.probability == null) return "There isn't enough data to judge: the best strategy has fewer than three days of returns.";
+  if (ds.trials === 1) {
+    return ds.probability >= 0.5
+      ? "With only one strategy tried, this reduces to whether its Sharpe ratio is positive at all. It is, but that says little on its own."
+      : "With only one strategy tried, this reduces to whether its Sharpe ratio is positive at all. It isn't.";
+  }
   if (ds.probability >= 0.95) return `Even after ${tries}, the best strategy's edge is unlikely to be luck. The final exam is the real test.`;
   if (ds.probability >= 0.5) return `The best strategy did better than luck would predict after ${tries}, but not by a convincing margin.`;
   return `After ${tries}, the best strategy's training result is about what luck alone would produce.`;
@@ -184,7 +189,11 @@ async function experiment() {
     yLabel: "Sharpe ratio in the final exam",
     format: fmt.ratio,
     diagonal: "Backtest told the truth",
-    hline: { value: bh, label: "Buy-and-hold" },
+    hline: { value: bh, label: ["Buy and hold,", fmt.period(data.test.from, data.test.to)] },
+    vline:
+      data.buyHoldInSampleSharpe != null
+        ? { value: data.buyHoldInSampleSharpe, label: ["Buy and hold,", fmt.period(data.train.from, data.train.to)] }
+        : null,
     ariaLabel: `Scatter plot of ${plottable.length} strategies. ${f.beatBuyHold} passed the critic and beat buy-and-hold on unseen data.`,
   });
   const statusLabel = { passed: "Passed", rejected: "Rejected", runtime_failed: "Crashed" };
@@ -202,7 +211,7 @@ async function experiment() {
       "luck.bestLabel": `best Sharpe ratio in training (${ds.best})`,
       "luck.threshold": fmt.ratio(ds.luckThresholdSharpe),
       "luck.thresholdLabel": `the best of ${fmt.count(ds.trials)} skill-less tries, by luck alone`,
-      "luck.probability": ds.probability == null ? "—" : `${Math.round(ds.probability * 100)}%`,
+      "luck.probability": ds.probability == null ? "Not enough data" : `${Math.round(ds.probability * 100)}%`,
       "luck.note": luckNote(ds),
     });
   }

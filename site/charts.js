@@ -183,7 +183,7 @@ export function lineChart(host, { x, series, yFormat, xFormat, height = 320, ari
  * Scatter plot with an optional diagonal reference line (y = x) and a
  * horizontal reference (y = value).
  */
-export function scatterChart(host, { points, groups, xLabel, yLabel, format, diagonal, hline, height = 420, ariaLabel }) {
+export function scatterChart(host, { points, groups, xLabel, yLabel, format, diagonal, hline, vline, height = 420, ariaLabel }) {
   host.classList.add("chart");
   host.replaceChildren();
   legend(host, groups, "dot");
@@ -194,7 +194,7 @@ export function scatterChart(host, { points, groups, xLabel, yLabel, format, dia
 
   const xs = points.map((p) => p.x);
   const ys = points.map((p) => p.y);
-  const xTicks = niceTicks(Math.min(...xs), Math.max(...xs), 6);
+  const xTicks = niceTicks(Math.min(...xs, vline?.value ?? Infinity), Math.max(...xs, vline?.value ?? -Infinity), 6);
   const yTicks = niceTicks(Math.min(...ys, hline?.value ?? Infinity), Math.max(...ys, hline?.value ?? -Infinity), 5);
   const [xMin, xMax] = [xTicks[0], xTicks.at(-1)];
   const [yMin, yMax] = [yTicks[0], yTicks.at(-1)];
@@ -239,12 +239,23 @@ export function scatterChart(host, { points, groups, xLabel, yLabel, format, dia
       const label = wide ? { x: sx(hi) + 6, y: sy(hi) + 4 } : { x: sx(hi) - 6, y: sy(hi) + 16, "text-anchor": "end" };
       el("text", { ...label, class: "chart-ref-label" }, svg).textContent = diagonal;
     }
+    // Reference labels may be one string or several lines.
+    const refLabel = (attrs, lines) => {
+      const text = el("text", { ...attrs, class: "chart-ref-label" }, svg);
+      [].concat(lines).forEach((line, i) => {
+        el("tspan", { x: attrs.x, dy: i ? 14 : 0 }, text).textContent = line;
+      });
+    };
     if (hline) {
       el("line", { x1: m.left, x2: m.left + w, y1: sy(hline.value), y2: sy(hline.value), class: "chart-ref" }, svg);
-      const label = wide
-        ? { x: m.left + w + 8, y: sy(hline.value) + 4 }
-        : { x: m.left + w - 6, y: sy(hline.value) - 6, "text-anchor": "end" };
-      el("text", { ...label, class: "chart-ref-label" }, svg).textContent = hline.label;
+      refLabel(
+        wide ? { x: m.left + w + 8, y: sy(hline.value) - 2 } : { x: m.left + w - 6, y: sy(hline.value) - 20, "text-anchor": "end" },
+        hline.label,
+      );
+    }
+    if (vline) {
+      el("line", { x1: sx(vline.value), x2: sx(vline.value), y1: m.top, y2: m.top + h, class: "chart-ref" }, svg);
+      refLabel({ x: sx(vline.value) + 6, y: m.top + h - 22 }, vline.label);
     }
 
     for (const p of ordered) {

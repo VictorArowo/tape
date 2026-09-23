@@ -19,6 +19,15 @@ export const fmt = {
     const [y, m, d] = iso.split("-").map(Number);
     return `${d} ${months[m - 1]} ${y}`;
   },
+  /** A compact period: "Jun–Aug 2026", "Mar 2025–Jan 2026" or "2023–2024". */
+  period: (from, to) => {
+    const [fy, fm] = from.split("-").map(Number);
+    const [ty, tm] = to.split("-").map(Number);
+    const mon = (m) => months[m - 1].slice(0, 3);
+    if (fm === 1 && tm === 12) return fy === ty ? `${fy}` : `${fy}–${ty}`;
+    if (fy === ty) return fm === tm ? `${mon(fm)} ${fy}` : `${mon(fm)}–${mon(tm)} ${fy}`;
+    return `${mon(fm)} ${fy}–${mon(tm)} ${ty}`;
+  },
   monthShort: (iso) => {
     const [y, m] = iso.split("-").map(Number);
     return `${months[m - 1].slice(0, 3)} ${String(y).slice(2)}`;
