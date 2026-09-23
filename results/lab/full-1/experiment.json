@@ -1406,7 +1406,7 @@
   "examples": [
     {
       "critic": "Reject: the evidence is too sparse and lacks walk-forward validation, while the strategy substantially underperforms buy-and-hold. A lower drawdown and marginally higher Sharpe do not establish a reliable alternative on this evidence.",
-      "hypothesis": "name 6 words max",
+      "hypothesis": null,
       "inSampleSharpe": 2.14,
       "name": "Multiweek Cost-Basis Reclaim",
       "outOfSampleSharpe": 0.83

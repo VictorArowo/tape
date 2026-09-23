@@ -950,6 +950,14 @@ fn deflated_summary(
     })
 }
 
+/// The model occasionally fills the hypothesis field with the idea's name,
+/// or with the word "name". A real hypothesis is a sentence; anything under
+/// five words is left out of the published summary (the full report keeps
+/// what the model actually wrote).
+fn usable_hypothesis(text: &str) -> Option<String> {
+    (text.split_whitespace().count() >= 5).then(|| text.to_owned())
+}
+
 impl Report {
     /// The experiment in the format the project site reads.
     pub fn experiment_json(&self, market: &Market) -> Value {
@@ -991,7 +999,7 @@ impl Report {
             .map(|a| {
                 json!({
                     "name": a.idea.as_ref().map(|i| i.name.clone()),
-                    "hypothesis": a.idea.as_ref().map(|i| i.hypothesis.clone()),
+                    "hypothesis": a.idea.as_ref().and_then(|i| usable_hypothesis(&i.hypothesis)),
                     "inSampleSharpe": a.in_sample.as_ref().and_then(|s| s.sharpe).map(round),
                     "outOfSampleSharpe": a.out_of_sample.as_ref().and_then(|s| s.sharpe).map(round),
                     "critic": a.critique.as_ref().map(|c| c.reason.clone()),
@@ -1031,6 +1039,13 @@ impl Report {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn placeholder_hypotheses_are_left_out() {
+        assert_eq!(usable_hypothesis("name 6 words max"), None);
+        assert_eq!(usable_hypothesis("name"), None);
+        assert!(usable_hypothesis("Trends in daily closes persist for weeks.").is_some());
+    }
 
     #[test]
     fn robust_variance_ignores_a_few_broken_strategies() {

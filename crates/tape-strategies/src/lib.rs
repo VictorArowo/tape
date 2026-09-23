@@ -2,6 +2,9 @@
 //! against and to compare anything cleverer with.
 
 pub mod notebook;
+mod reversion;
+
+pub use reversion::{Breakout, MeanReversion};
 
 use std::collections::VecDeque;
 
@@ -9,7 +12,7 @@ use tape_core::{InstrumentId, MarketEvent, OrderRequest, Price, Side};
 use tape_engine::{Context, Strategy};
 
 /// Room left for slippage when sizing an all-in buy, in ppm.
-const SIZING_MARGIN_PPM: i64 = 5_000;
+pub(crate) const SIZING_MARGIN_PPM: i64 = 5_000;
 
 /// Buys as much as it can on the first price it sees and holds.
 pub struct BuyAndHold {
