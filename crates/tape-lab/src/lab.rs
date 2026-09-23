@@ -21,7 +21,7 @@ use std::collections::BTreeMap;
 use std::convert::Infallible;
 use std::fs::{self, File};
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -35,7 +35,7 @@ use tape_metrics::{Periods, deflated, period_returns};
 use tape_wasm::{Limits, Sandbox};
 
 use crate::build::{BuildError, GuestBuilder};
-use crate::model::{Budget, Model, ModelError, Prompt};
+use crate::model::{Budget, Model, ModelError};
 use crate::prompts::{self, MarketBrief};
 
 /// A contiguous stretch of bars, with a human-readable label.
@@ -49,6 +49,10 @@ pub struct Market {
     pub instrument: Instrument,
     pub train: Period,
     pub test: Period,
+    /// Bars from just before the test period. Strategies see them first so
+    /// their indicators are ready when the test starts, but nothing that
+    /// happens during the warm-up counts towards the test results.
+    pub warmup: Vec<MarketEvent>,
 }
 
 pub struct LabConfig {
@@ -69,6 +73,8 @@ pub enum LabError {
     Benchmark(String),
     #[error("model error: {0}")]
     Model(#[from] ModelError),
+    #[error("{0}")]
+    Run(String),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -171,6 +177,18 @@ fn summarize(result: &BacktestResult, equity: &[EquityPoint], from: String, to: 
     }
 }
 
+/// Stats for the part of a run from `start` on, measured from the equity
+/// at that moment.
+fn summarize_from(result: &BacktestResult, start: Timestamp, from: String, to: String) -> Stats {
+    let first = result.equity.partition_point(|point| point.ts < start);
+    let window = &result.equity[first.saturating_sub(1)..];
+    let fills = result.fills.iter().filter(|f| f.ts >= start);
+    let mut stats = summarize(result, window, from, to);
+    stats.trades = fills.clone().count();
+    stats.fees = fills.map(|f| f.fee.to_f64()).sum();
+    stats
+}
+
 fn date(ts: Timestamp) -> String {
     let (y, m, d) = ts.date();
     format!("{y:04}-{m:02}-{d:02}")
@@ -202,14 +220,41 @@ impl Stats {
 struct Desk<'a> {
     config: &'a LabConfig,
     market: &'a Market,
-    model: &'a dyn Model,
-    budget: &'a Budget,
     sandbox: Sandbox,
     /// Middle of the training period, for the two-halves check.
     split: Timestamp,
 }
 
-impl Desk<'_> {
+impl<'a> Desk<'a> {
+    fn new(config: &'a LabConfig, market: &'a Market) -> Self {
+        let first = market
+            .train
+            .events
+            .first()
+            .map_or(Timestamp::EPOCH, MarketEvent::ts);
+        let last = market
+            .train
+            .events
+            .last()
+            .map_or(Timestamp::EPOCH, MarketEvent::ts);
+        let middle = first + TimeDelta::from_nanos((last - first).as_nanos() / 2);
+        let (year, month, _) = middle.date();
+        Self {
+            config,
+            market,
+            sandbox: Sandbox::new(config.limits.clone()),
+            split: Timestamp::from_ymd(year, month, 1),
+        }
+    }
+
+    fn buy_hold(&self, events: &[MarketEvent], from: &str, to: &str) -> Result<Stats, LabError> {
+        let mut strategy = tape_strategies_buy_and_hold(self.market.instrument.id);
+        let result = self
+            .backtest(strategy.as_mut(), events)
+            .map_err(LabError::Benchmark)?;
+        Ok(summarize(&result, &result.equity, from.into(), to.into()))
+    }
+
     fn backtest(
         &self,
         strategy: &mut dyn Strategy,
@@ -254,11 +299,6 @@ impl Desk<'_> {
         b.fees = full.fees - fees_before;
         (full, [a, b])
     }
-
-    fn call(&self, prompt: &Prompt) -> Result<(Value, f64), ModelError> {
-        let completion = self.budget.complete(self.model, prompt)?;
-        Ok((completion.json, completion.cost_usd))
-    }
 }
 
 fn history_line(attempt: &Attempt) -> Option<String> {
@@ -298,41 +338,9 @@ pub fn run(
     fs::create_dir_all(config.out_dir.join("wasm"))?;
     let mut log = File::create(config.out_dir.join("attempts.jsonl"))?;
 
-    let first = market
-        .train
-        .events
-        .first()
-        .map_or(Timestamp::EPOCH, MarketEvent::ts);
-    let last = market
-        .train
-        .events
-        .last()
-        .map_or(Timestamp::EPOCH, MarketEvent::ts);
-    let split = first + TimeDelta::from_nanos((last - first).as_nanos() / 2);
-    let split = Timestamp::from_ymd(split.date().0, split.date().1, 1);
-    let desk = Desk {
-        config,
-        market,
-        model,
-        budget,
-        sandbox: Sandbox::new(config.limits.clone()),
-        split,
-    };
-
-    let benchmark =
-        |events: &[MarketEvent], from: &str, to: &str| -> Result<(Stats, Vec<f64>), LabError> {
-            let mut strategy = tape_strategies_buy_and_hold(market.instrument.id);
-            let result = desk
-                .backtest(strategy.as_mut(), events)
-                .map_err(LabError::Benchmark)?;
-            let returns = period_returns(&result.equity, TimeDelta::from_days(1));
-            Ok((
-                summarize(&result, &result.equity, from.into(), to.into()),
-                returns,
-            ))
-        };
-    let (buy_hold_in_sample, _) =
-        benchmark(&market.train.events, &market.train.from, &market.train.to)?;
+    let desk = Desk::new(config, market);
+    let buy_hold_in_sample =
+        desk.buy_hold(&market.train.events, &market.train.from, &market.train.to)?;
     let brief = MarketBrief {
         symbol: market.instrument.symbol.clone(),
         train_from: market.train.from.clone(),
@@ -367,7 +375,10 @@ pub fn run(
         // budget is gone) ends the run.
         macro_rules! ask {
             ($prompt:expr) => {
-                match desk.call(&$prompt) {
+                match budget
+                    .complete(model, &$prompt)
+                    .map(|c| (c.json, c.cost_usd))
+                {
                     Ok((json, cost)) => {
                         attempt.cost_usd += cost;
                         Some(json)
@@ -511,18 +522,80 @@ pub fn run(
         attempts.push(attempt);
     }
 
-    // The one look at the test period, after every decision has been made.
+    finalize(
+        &desk,
+        attempts,
+        &modules,
+        &daily_returns,
+        buy_hold_in_sample,
+        Spend {
+            model: model.name().to_owned(),
+            spent_usd: budget.spent(),
+            budget_usd: budget.cap(),
+            stopped,
+        },
+        progress,
+    )
+}
+
+/// What a run cost and why it ended, carried into the report.
+struct Spend {
+    model: String,
+    spent_usd: f64,
+    budget_usd: f64,
+    stopped: String,
+}
+
+/// The one look at the test period, after every decision has been made,
+/// then the funnel, the luck check and the report files.
+fn finalize(
+    desk: &Desk<'_>,
+    mut attempts: Vec<Attempt>,
+    modules: &BTreeMap<String, Vec<u8>>,
+    daily_returns: &BTreeMap<String, Vec<f64>>,
+    buy_hold_in_sample: Stats,
+    spend: Spend,
+    progress: &mut dyn FnMut(&str),
+) -> Result<Report, LabError> {
+    let (config, market) = (desk.config, desk.market);
     progress("running every strategy once on the held-out test period");
-    let (buy_hold_out_of_sample, _) =
-        benchmark(&market.test.events, &market.test.from, &market.test.to)?;
+    let buy_hold_out_of_sample =
+        desk.buy_hold(&market.test.events, &market.test.from, &market.test.to)?;
+    let test_start = market
+        .test
+        .events
+        .first()
+        .map_or(Timestamp::MAX, MarketEvent::ts);
+    let warmed: Vec<MarketEvent> = market
+        .warmup
+        .iter()
+        .filter(|event| event.ts() < test_start)
+        .chain(&market.test.events)
+        .cloned()
+        .collect();
     for attempt in &mut attempts {
+        attempt.out_of_sample = None;
         let Some(wasm) = modules.get(&attempt.id) else {
             continue;
         };
-        if let Ok(result) = desk.run_wasm(wasm, &market.test.events) {
-            attempt.out_of_sample = Some(summarize(
+        if let Ok(result) = desk.run_wasm(wasm, &warmed) {
+            // A strategy that lost most of its capital during the warm-up is
+            // broken; scoring what its leftover dust does in the test period
+            // would only measure noise.
+            let at_start = result
+                .equity
+                .iter()
+                .take_while(|point| point.ts < test_start)
+                .last()
+                .map_or(config.initial_cash, |point| point.equity);
+            if at_start < config.initial_cash.mul_ratio(1, 10) {
+                attempt.error =
+                    Some("lost over 90% during the warm-up, before the test period began".into());
+                continue;
+            }
+            attempt.out_of_sample = Some(summarize_from(
                 &result,
-                &result.equity,
+                test_start,
                 market.test.from.clone(),
                 market.test.to.clone(),
             ));
@@ -558,18 +631,18 @@ pub fn run(
             })
             .count(),
     };
-    let deflated = deflated_summary(&ran, &daily_returns);
+    let deflated = deflated_summary(&ran, daily_returns);
 
     let report = Report {
-        model: model.name().to_owned(),
+        model: spend.model,
         attempts,
         funnel,
         buy_hold_in_sample,
         buy_hold_out_of_sample,
         deflated,
-        spent_usd: budget.spent(),
-        budget_usd: budget.cap(),
-        stopped,
+        spent_usd: spend.spent_usd,
+        budget_usd: spend.budget_usd,
+        stopped: spend.stopped,
     };
     fs::write(
         config.out_dir.join("report.json"),
@@ -580,6 +653,75 @@ pub fn run(
         serde_json::to_vec_pretty(&report.experiment_json(market)).unwrap_or_default(),
     )?;
     Ok(report)
+}
+
+/// Re-scores a finished run from its saved strategies, without calling any
+/// model: reruns every backtest and the held-out test (for example on a
+/// different test period, or after a fix to the evaluation). The training
+/// period must match the original run, since the critic judged it.
+pub fn evaluate(
+    config: &LabConfig,
+    market: &Market,
+    run_dir: &Path,
+    progress: &mut dyn FnMut(&str),
+) -> Result<Report, LabError> {
+    let old: Report = serde_json::from_slice(&fs::read(run_dir.join("report.json"))?)
+        .map_err(|err| LabError::Run(format!("unreadable report.json: {err}")))?;
+    if (
+        old.buy_hold_in_sample.from.as_str(),
+        old.buy_hold_in_sample.to.as_str(),
+    ) != (market.train.from.as_str(), market.train.to.as_str())
+    {
+        return Err(LabError::Run(format!(
+            "the run was trained on {} to {}; evaluate it with the same training period",
+            old.buy_hold_in_sample.from, old.buy_hold_in_sample.to
+        )));
+    }
+    fs::create_dir_all(&config.out_dir)?;
+    let desk = Desk::new(config, market);
+    let buy_hold_in_sample =
+        desk.buy_hold(&market.train.events, &market.train.from, &market.train.to)?;
+
+    let mut modules = BTreeMap::new();
+    let mut daily_returns = BTreeMap::new();
+    let mut attempts = old.attempts;
+    for attempt in &mut attempts {
+        if attempt.in_sample.is_none() {
+            continue;
+        }
+        let wasm = fs::read(run_dir.join("wasm").join(format!("{}.wasm", attempt.id)))?;
+        match desk.run_wasm(&wasm, &market.train.events) {
+            Ok(result) => {
+                let (stats, halves) = desk.in_sample(&result);
+                attempt.in_sample = Some(stats);
+                attempt.halves = Some(halves);
+                daily_returns.insert(
+                    attempt.id.clone(),
+                    period_returns(&result.equity, TimeDelta::from_days(1)),
+                );
+                modules.insert(attempt.id.clone(), wasm);
+            }
+            Err(err) => progress(&format!("{} no longer runs: {err}", attempt.id)),
+        }
+    }
+    progress(&format!(
+        "re-scored {} strategies on the training period",
+        modules.len()
+    ));
+    finalize(
+        &desk,
+        attempts,
+        &modules,
+        &daily_returns,
+        buy_hold_in_sample,
+        Spend {
+            model: old.model,
+            spent_usd: old.spent_usd,
+            budget_usd: old.budget_usd,
+            stopped: old.stopped,
+        },
+        progress,
+    )
 }
 
 fn tape_strategies_buy_and_hold(instrument: InstrumentId) -> Box<dyn Strategy> {
@@ -631,6 +773,30 @@ fn record(log: &mut File, attempt: &Attempt) -> std::io::Result<()> {
     log.flush()
 }
 
+/// Variance estimated from the median absolute deviation (scaled to match
+/// the standard deviation of a normal distribution). A few broken strategies,
+/// such as one that trades every minute into a Sharpe of -18, would dominate
+/// the ordinary variance and make the luck threshold meaninglessly high.
+fn robust_variance(values: &[f64]) -> f64 {
+    fn median(sorted: &[f64]) -> f64 {
+        let n = sorted.len();
+        if n % 2 == 1 {
+            sorted[n / 2]
+        } else {
+            (sorted[n / 2 - 1] + sorted[n / 2]) / 2.0
+        }
+    }
+    if values.len() < 2 {
+        return 0.0;
+    }
+    let mut sorted = values.to_vec();
+    sorted.sort_by(f64::total_cmp);
+    let center = median(&sorted);
+    let mut deviations: Vec<f64> = sorted.iter().map(|v| (v - center).abs()).collect();
+    deviations.sort_by(f64::total_cmp);
+    (1.4826 * median(&deviations)).powi(2)
+}
+
 fn deflated_summary(
     ran: &[&Attempt],
     daily_returns: &BTreeMap<String, Vec<f64>>,
@@ -642,12 +808,7 @@ fn deflated_summary(
         .collect();
     let (best, best_sharpe) = sharpes.iter().copied().max_by(|a, b| a.1.total_cmp(&b.1))?;
     let per_period: Vec<f64> = sharpes.iter().map(|(_, s)| s / scale).collect();
-    let mean = per_period.iter().sum::<f64>() / per_period.len() as f64;
-    let variance = if per_period.len() > 1 {
-        per_period.iter().map(|s| (s - mean).powi(2)).sum::<f64>() / (per_period.len() - 1) as f64
-    } else {
-        0.0
-    };
+    let variance = robust_variance(&per_period);
     let threshold = deflated::expected_max_sharpe(per_period.len(), variance);
     Some(DeflatedSummary {
         best: best.to_owned(),
@@ -738,5 +899,21 @@ impl Report {
             "spentUsd": (self.spent_usd * 100.0).round() / 100.0,
             "stopped": self.stopped,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn robust_variance_ignores_a_few_broken_strategies() {
+        let normal = [0.9, 1.1, 1.0, 1.2, 0.8, 1.05, 0.95];
+        let mut with_bugs = normal.to_vec();
+        with_bugs.extend([-18.0, -9.8]);
+        let clean = robust_variance(&normal);
+        let dirty = robust_variance(&with_bugs);
+        assert!(dirty < clean * 3.0, "{dirty} vs {clean}");
+        assert_eq!(robust_variance(&[1.0]), 0.0);
     }
 }

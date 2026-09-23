@@ -149,11 +149,15 @@ debug = false
     /// Checks and compiles `source`, returning the WebAssembly module.
     pub fn build(&self, source: &str) -> Result<Vec<u8>, BuildError> {
         check_source(source).map_err(BuildError::Rejected)?;
-        // Every builder shares one scratch crate, so builds take turns.
+        // Every builder, in this process or another, shares one scratch
+        // crate, so builds take turns: a mutex for threads here and a file
+        // lock for other processes (a test run alongside an experiment).
         static SCRATCH: Mutex<()> = Mutex::new(());
         let _turn = SCRATCH
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner());
+        let lock = fs::File::create(self.crate_dir.join(".build.lock"))?;
+        lock.lock()?;
         fs::write(self.crate_dir.join("src/lib.rs"), source)?;
         let wasm = self
             .target_dir

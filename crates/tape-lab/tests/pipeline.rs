@@ -72,6 +72,7 @@ fn a_scripted_experiment_runs_end_to_end() {
             to: "2024-01-04".into(),
             events: bars(test_start, 1_500, 11),
         },
+        warmup: Vec::new(),
     };
 
     let working = include_str!("../../../guests/sma-cross/src/lib.rs");
@@ -173,6 +174,7 @@ fn the_run_stops_cleanly_when_the_budget_runs_out() {
             to: "d".into(),
             events: bars(start + TimeDelta::from_days(1), 500, 5),
         },
+        warmup: Vec::new(),
     };
     // Each call costs 40 cents against a 50 cent cap: the first idea is
     // affordable, the code for it isn't.

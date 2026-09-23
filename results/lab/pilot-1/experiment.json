@@ -1,0 +1,266 @@
+{
+  "allStrategies": [
+    {
+      "id": "s001",
+      "inSampleSharpe": 0.99,
+      "name": "Daily Trend Filter",
+      "outOfSampleSharpe": 0.86,
+      "status": "rejected"
+    },
+    {
+      "id": "s002",
+      "inSampleSharpe": null,
+      "name": "Liquidation-Wick Rebound",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s003",
+      "inSampleSharpe": -0.76,
+      "name": "Volume-Confirmed Breakout",
+      "outOfSampleSharpe": -3.9,
+      "status": "rejected"
+    },
+    {
+      "id": "s004",
+      "inSampleSharpe": 1.98,
+      "name": "Volatility-Scaled Exposure",
+      "outOfSampleSharpe": 0.82,
+      "status": "rejected"
+    },
+    {
+      "id": "s005",
+      "inSampleSharpe": null,
+      "name": "Deep Drawdown Recovery",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s006",
+      "inSampleSharpe": 0.99,
+      "name": "Weekend Liquidity Avoidance",
+      "outOfSampleSharpe": 1.06,
+      "status": "rejected"
+    },
+    {
+      "id": "s007",
+      "inSampleSharpe": -0.13,
+      "name": "Uptrend Pullback",
+      "outOfSampleSharpe": 3.15,
+      "status": "rejected"
+    },
+    {
+      "id": "s008",
+      "inSampleSharpe": -1.3,
+      "name": "UTC Close Reversal",
+      "outOfSampleSharpe": -2.8,
+      "status": "rejected"
+    },
+    {
+      "id": "s009",
+      "inSampleSharpe": 0.92,
+      "name": "U.S. Session Flow Reversal",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s010",
+      "inSampleSharpe": 1.92,
+      "name": "Panic-Day Staged Re-entry",
+      "outOfSampleSharpe": 0.57,
+      "status": "rejected"
+    },
+    {
+      "id": "s011",
+      "inSampleSharpe": -0.8,
+      "name": "Month-End Flow Window",
+      "outOfSampleSharpe": 0.87,
+      "status": "rejected"
+    },
+    {
+      "id": "s012",
+      "inSampleSharpe": 2.0,
+      "name": "Downside Gap Risk Pause",
+      "outOfSampleSharpe": 0.78,
+      "status": "rejected"
+    },
+    {
+      "id": "s013",
+      "inSampleSharpe": -18.08,
+      "name": "Stabilized Selloff Reversal",
+      "outOfSampleSharpe": 0.64,
+      "status": "rejected"
+    },
+    {
+      "id": "s014",
+      "inSampleSharpe": -0.22,
+      "name": "Friday Expiry Window",
+      "outOfSampleSharpe": 1.65,
+      "status": "rejected"
+    },
+    {
+      "id": "s015",
+      "inSampleSharpe": 0.7,
+      "name": "ETF-Session Flow Carry",
+      "outOfSampleSharpe": 0.53,
+      "status": "rejected"
+    },
+    {
+      "id": "s016",
+      "inSampleSharpe": -0.83,
+      "name": "Turnover Absorption Confirmation",
+      "outOfSampleSharpe": 0.7,
+      "status": "rejected"
+    },
+    {
+      "id": "s017",
+      "inSampleSharpe": 2.02,
+      "name": "Unfiltered Spot Hold",
+      "outOfSampleSharpe": 0.82,
+      "status": "rejected"
+    },
+    {
+      "id": "s018",
+      "inSampleSharpe": null,
+      "name": "Rally Exhaustion Pause",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s019",
+      "inSampleSharpe": 1.89,
+      "name": "Drawdown Budget Exit",
+      "outOfSampleSharpe": 0.55,
+      "status": "rejected"
+    },
+    {
+      "id": "s020",
+      "inSampleSharpe": 1.54,
+      "name": "Monthly Relative-Momentum Allocation",
+      "outOfSampleSharpe": 0.82,
+      "status": "rejected"
+    },
+    {
+      "id": "s021",
+      "inSampleSharpe": -9.85,
+      "name": "Session VWAP Reclaim",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s022",
+      "inSampleSharpe": 1.14,
+      "name": "Post-Shock Cooldown",
+      "outOfSampleSharpe": 0.63,
+      "status": "rejected"
+    },
+    {
+      "id": "s023",
+      "inSampleSharpe": 2.01,
+      "name": "Downside Semivolatility Gate",
+      "outOfSampleSharpe": 0.82,
+      "status": "rejected"
+    },
+    {
+      "id": "s024",
+      "inSampleSharpe": 1.24,
+      "name": "Range Expansion Hold",
+      "outOfSampleSharpe": -2.54,
+      "status": "rejected"
+    },
+    {
+      "id": "s025",
+      "inSampleSharpe": null,
+      "name": "Macro Reaction Continuation",
+      "outOfSampleSharpe": null,
+      "status": "rejected"
+    },
+    {
+      "id": "s026",
+      "inSampleSharpe": -0.08,
+      "name": "Early-Month Flow Window",
+      "outOfSampleSharpe": -0.55,
+      "status": "rejected"
+    },
+    {
+      "id": "s027",
+      "inSampleSharpe": 1.11,
+      "name": "Weekly Momentum Overlay",
+      "outOfSampleSharpe": 0.37,
+      "status": "rejected"
+    },
+    {
+      "id": "s028",
+      "inSampleSharpe": 1.53,
+      "name": "Small Cash Reserve",
+      "outOfSampleSharpe": 0.35,
+      "status": "rejected"
+    },
+    {
+      "id": "s029",
+      "inSampleSharpe": -0.28,
+      "name": "Weekend Reopening Reversal",
+      "outOfSampleSharpe": -0.09,
+      "status": "rejected"
+    },
+    {
+      "id": "s030",
+      "inSampleSharpe": -3.57,
+      "name": "UTC Overnight Drift",
+      "outOfSampleSharpe": -4.51,
+      "status": "rejected"
+    }
+  ],
+  "buyHoldInSampleSharpe": 2.02,
+  "buyHoldOutOfSampleSharpe": 0.81,
+  "deflatedSharpe": {
+    "best": "s017",
+    "bestInSampleSharpe": 2.02,
+    "luckThresholdSharpe": 3.09,
+    "probability": 0.058,
+    "trials": 26
+  },
+  "examples": [
+    {
+      "critic": "This is a clear and simple benchmark, but it fails the requirement to beat buy-and-hold or offer clearly lower risk for a similar return. Reject it as a strategy candidate, while retaining it as a useful baseline.",
+      "hypothesis": "After many tactical OHLCV rules fail to beat the benchmark, the most defensible next test is whether any added timing rule helps at all. Continuous spot exposure captures BTC’s long-run appreciation without signal delay, missed rebounds, or repeated execution costs; it is a benchmark, not a claim of excess edge.",
+      "inSampleSharpe": 2.02,
+      "name": "Unfiltered Spot Hold",
+      "outOfSampleSharpe": 0.82
+    },
+    {
+      "critic": "Reject: the backtest is effectively buy-and-hold, with no demonstrated improvement in return or risk and too few trades to evaluate the rule. It does not meet the evidence threshold for risking capital.",
+      "hypothesis": "BTC’s volatility clusters, but losses and gains are not symmetric: sustained downside pressure may be more informative about near-term crash risk than volatility alone. A slow, downside-semivolatility exposure rule tests whether selectively reducing risk during persistently lopsided selling can improve risk-adjusted results without reacting to individual shocks; it is a risk-control hypothesis, not a presumed return edge.",
+      "inSampleSharpe": 2.01,
+      "name": "Downside Semivolatility Gate",
+      "outOfSampleSharpe": 0.82
+    },
+    {
+      "critic": "The strategy fails the required comparison with buy-and-hold and has far too few trades to support confidence in its results. Its reported returns do not show a compensating risk benefit, and the code also does not exactly implement the stated pause duration.",
+      "hypothesis": "A long-only strategy that remains invested through BTC’s strong advances but temporarily exits after unusually large downside gaps may reduce exposure to forced repricing and cascading sell pressure. Unlike intraday signal-chasing, it uses a rare daily risk event; whether the avoided losses outweigh missed rebounds and trading costs must be tested against buy-and-hold across both halves of the sample.",
+      "inSampleSharpe": 2.0,
+      "name": "Downside Gap Risk Pause",
+      "outOfSampleSharpe": 0.78
+    }
+  ],
+  "funnel": {
+    "beatBuyHold": 0,
+    "compiled": 30,
+    "passedCritic": 0,
+    "proposed": 30,
+    "ran": 30
+  },
+  "model": "gpt-6-luna",
+  "placeholder": false,
+  "spentUsd": 0.06,
+  "stopped": "finished all 30 attempts",
+  "strategies": [],
+  "test": {
+    "from": "2025-01-01",
+    "to": "2025-06-30"
+  },
+  "train": {
+    "from": "2023-01-01",
+    "to": "2024-12-31"
+  }
+}

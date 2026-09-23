@@ -1,0 +1,1836 @@
+{
+  "model": "gpt-6-luna",
+  "attempts": [
+    {
+      "id": "s001",
+      "idea": {
+        "name": "Daily Trend Filter",
+        "hypothesis": "Bitcoin’s multiweek trends can persist as investor flows and risk appetite adjust gradually. A slow trend filter may keep the strategy invested during sustained advances while stepping aside during prolonged declines, with infrequent trades limiting execution costs.",
+        "rules": "Aggregate the observed one-minute bars into UTC daily bars. After each UTC daily close, calculate the simple moving average of the latest 100 completed daily closes. If flat and the daily close is above that average, target a long position worth 100% of current account equity; if long and the daily close is below the average, target cash. Submit any resulting market order after the signal, with the earliest fill at the next one-minute bar’s open. Size buys to available cash and sells to the BTC held; do not borrow or short. Apply the specified fee, slippage, latency, and 10%-of-bar-volume fill cap, carrying any unfilled target quantity forward. Hold the existing position when the close equals the average or the signal does not change."
+      },
+      "status": "rejected",
+      "builds": 2,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 0.8447187639859999,
+        "sharpe": 0.9932276877327026,
+        "max_drawdown": 0.37518891093320395,
+        "trades": 51,
+        "fees": 343.06747354
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.12211332574400013,
+          "sharpe": 0.5396425823504604,
+          "max_drawdown": 0.3125498332597489,
+          "trades": 23,
+          "fees": 93.48854296
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 0.6438719043872974,
+          "sharpe": 1.3223220021031798,
+          "max_drawdown": 0.37518891093320395,
+          "trades": 28,
+          "fees": 249.57893057999996
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "Reject: it fails the required comparison with buy-and-hold, has substantial drawdowns, and its limited, regime-dependent training results do not establish robustness.",
+        "concerns": [
+          "The strategy substantially underperforms buy-and-hold: +84.5% versus +462.7%, with a lower Sharpe (0.99 vs. 2.02) and a worse maximum drawdown (-37.5% vs. -33.1%). It offers no clear risk-adjusted advantage.",
+          "Results are uneven across halves: the first half returns only +12.2% with a -31.3% drawdown, while most gains arrive in the second half (+64.4%).",
+          "There are only 51 fills over two years, too few to establish that the result is robust; the second-half result may reflect a favorable market regime.",
+          "The stated execution assumptions and fees are not enough to overcome the benchmark gap, and the backtest is training data only. No out-of-sample evidence is provided."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.1067254719230375,
+        "sharpe": 0.8571941313009097,
+        "max_drawdown": 0.18836630636117785,
+        "trades": 13,
+        "fees": 76.5803428
+      },
+      "cost_usd": 0.0024548599999999997
+    },
+    {
+      "id": "s002",
+      "idea": {
+        "name": "Liquidation-Wick Rebound",
+        "hypothesis": "A sudden, high-volume BTC selloff can reflect forced liquidations and temporary order-flow imbalance rather than new information; a strong close within the selloff bar may indicate that this pressure is being absorbed. A low-frequency, long-only rebound trade tests that mechanism and differs from a slow trend filter, though its edge must be validated after costs and across subperiods.",
+        "rules": "Build 15-minute bars from completed one-minute bars. When flat and not in a position, signal at the close of a completed 15-minute bar if (1) its close is at least 2.5% below its open, (2) its volume is at least 3 times the median volume of the preceding 2,880 completed 15-minute bars, and (3) its close is in the top 25% of its high-low range. Enter at the next one-minute bar's open, buying with 25% of current equity, subject to available cash and the 10%-of-bar-volume fill cap; do not add to the position. Exit the entire position at the next one-minute open after a one-minute close is at least 2% below entry, at least 3% above entry, or 8 hours have elapsed since entry, whichever occurs first. Apply the stated fee and slippage to every fill; remain flat until a new signal."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 0.0,
+        "sharpe": null,
+        "max_drawdown": 0.0,
+        "trades": 0,
+        "fees": 0.0
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.0,
+          "sharpe": null,
+          "max_drawdown": 0.0,
+          "trades": 0,
+          "fees": -0.0
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 0.0,
+          "sharpe": null,
+          "max_drawdown": 0.0,
+          "trades": 0,
+          "fees": 0.0
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "Reject: the reported results show no executed trades and no return, while buy-and-hold substantially outperformed. The strategy has not demonstrated an edge; investigate the zero-fill outcome before considering any further evaluation.",
+        "concerns": [
+          "The backtest records zero fills, so it provides no evidence that the signal is profitable or that its rules work as intended.",
+          "With no trades, there is no meaningful assessment of performance in either half, risk, or trading costs.",
+          "The strategy does not beat buy-and-hold: it returned 0.0% versus 462.7% over the same period.",
+          "The zero-fill result warrants checking the 15-minute bar aggregation and timestamp alignment, as well as whether the signal conditions are ever met."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.0,
+        "sharpe": null,
+        "max_drawdown": 0.0,
+        "trades": 0,
+        "fees": -0.0
+      },
+      "cost_usd": 0.0020035300000000003
+    },
+    {
+      "id": "s003",
+      "idea": {
+        "name": "Volume-Confirmed Breakout",
+        "hypothesis": "A close above the prior 24-hour high on unusually high volume may signal persistent informed buying rather than a brief price spike: traders who missed the breakout and continued buy orders can sustain the move. This is an event-driven continuation strategy, distinct from a slow trend filter and from buying selloff wicks; its edge must be tested net of execution costs and across subperiods.",
+        "rules": "Use only completed one-minute bars. While flat, enter long when the close is strictly above the highest high of the preceding 1,440 bars and the bar’s volume exceeds 1.5 times the median volume of those same preceding 1,440 bars. Submit a market buy for 100% of available cash; fill at the next bar’s open, subject to the stated fee, slippage, latency, and 10%-of-bar-volume cap. While long, exit when a completed bar closes below the lowest low of the preceding 720 bars, or after 720 bars in the position, whichever occurs first; submit a market sell for the next bar’s open, subject to the same execution rules. Hold no more than one position; do not pyramid or short. If required lookback data are unavailable, do not enter."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": -0.43320035419300007,
+        "sharpe": -0.7588066366598631,
+        "max_drawdown": 0.5692088368893508,
+        "trades": 949,
+        "fees": 8172.20980023
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": -0.10156472656299997,
+          "sharpe": -0.2411800256964947,
+          "max_drawdown": 0.38917258437733915,
+          "trades": 446,
+          "fees": 4436.844370030001
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": -0.36912578728272183,
+          "sharpe": -1.196463318788114,
+          "max_drawdown": 0.4430096558577979,
+          "trades": 503,
+          "fees": 3735.3654301999986
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The reported backtest fails the profitability, both-halves, and buy-and-hold comparison requirements by wide margins. Reject; it is not supported for real-money deployment.",
+        "concerns": [
+          "The strategy loses 43.3% after costs, with negative Sharpe and a 56.9% maximum drawdown.",
+          "It loses in both halves: -10.2% in 2023 and -36.9% in 2024, so performance is not confined to one weak subperiod.",
+          "It substantially underperforms buy-and-hold, which returned +462.7% with a smaller drawdown.",
+          "The 949 fills indicate meaningful trading activity, but frequent execution incurs substantial fees and does not rescue the poor results.",
+          "The code appears inconsistent with the stated rules: it sizes using a 0.5% margin allowance rather than 100% of available cash, and its history can include bars from while a position was open when calculating the exit low. These differences warrant care in interpreting the test, but do not change the negative reported outcome."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": -0.42783524824149133,
+        "sharpe": -3.898586810408358,
+        "max_drawdown": 0.4494846232634248,
+        "trades": 241,
+        "fees": 1512.2304396900006
+      },
+      "cost_usd": 0.00177003
+    },
+    {
+      "id": "s004",
+      "idea": {
+        "name": "Volatility-Scaled Exposure",
+        "hypothesis": "Bitcoin volatility clusters, so recent realized volatility can help forecast near-term risk. Capping exposure when volatility is unusually high may reduce the impact of turbulent periods without relying on price-trend or breakout signals, though it may also miss sharp rebounds and needs testing against buy-and-hold after costs.",
+        "rules": "At each UTC Monday 00:00 bar close, compute the standard deviation of the last 10,080 one-minute log returns, annualized as sigma × sqrt(525,600). Set the target BTC portfolio weight to min(1.0, 0.60 / annualized_sigma); hold the remainder in USDT. Rebalance at the next bar’s open, buying or selling only enough BTC to reach the target weight, subject to available cash or holdings and the 10%-of-bar-volume cap. Use only completed bars for the estimate; apply the stated fee and slippage to every fill. If fewer than 10,080 returns are available, remain in USDT."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 4.452121438846,
+        "sharpe": 1.9799708172586519,
+        "max_drawdown": 0.33123439968623375,
+        "trades": 3,
+        "fees": 9.98991634
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 1.4634753852459998,
+          "sharpe": 2.2660324241294965,
+          "max_drawdown": 0.22350400539400028,
+          "trades": 3,
+          "fees": 9.98991634
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 1.2130530294800366,
+          "sharpe": 1.7562954705156861,
+          "max_drawdown": 0.33123439968623375,
+          "trades": 0,
+          "fees": 0.0
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "It fails the required comparison with buy-and-hold and offers no clear risk reduction, while three fills are insufficient evidence. Reject before considering real-money use.",
+        "concerns": [
+          "The strategy underperforms buy-and-hold on return (+445.2% vs. +462.7%) and Sharpe (1.98 vs. 2.02), with no meaningful reduction in maximum drawdown (-33.1% for both).",
+          "Only 3 fills across two years is far too little evidence to establish a reliable strategy result; the second half had no fills.",
+          "The reported strong returns do not demonstrate that volatility scaling helped: the strategy was effectively inactive for much of the test, and the results are training-only.",
+          "The implementation may not match the stated rebalance schedule or execution assumptions; the supplied results do not establish next-bar-open fills, slippage, or volume-cap effects."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.14501718945756137,
+        "sharpe": 0.8155445150516016,
+        "max_drawdown": 0.3167143328017145,
+        "trades": 0,
+        "fees": -0.0
+      },
+      "cost_usd": 0.00152793
+    },
+    {
+      "id": "s005",
+      "idea": {
+        "name": "Deep Drawdown Recovery",
+        "hypothesis": "Broad, persistent drawdowns may push leveraged or liquidity-constrained holders to sell beyond what longer-horizon buyers consider fundamental value; a confirmed recovery from a deep drawdown could capture that rebound without reacting to individual intraday wicks. This tests a multiweek capitulation-and-recovery effect, rather than trend following, breakout continuation, or volatility-based exposure sizing.",
+        "rules": "Use only completed one-minute bars. Calculate the highest close over the preceding 30 days (43,200 bars). When flat, if the current close is at least 20% below that high and is also above the highest close of the preceding 3 days (4,320 bars), submit a market buy for all available cash; fill at the next bar's open, subject to the specified latency, slippage, fee, and volume cap. When invested, submit a market sell for the entire position if the close reaches or exceeds the 30-day high recorded at entry, or if 90 days have elapsed since entry; fill at the next bar's open under the same execution rules. Otherwise hold. Do not pyramid, short, or use leverage."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 0.0,
+        "sharpe": null,
+        "max_drawdown": 0.0,
+        "trades": 0,
+        "fees": 0.0
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.0,
+          "sharpe": null,
+          "max_drawdown": 0.0,
+          "trades": 0,
+          "fees": -0.0
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 0.0,
+          "sharpe": null,
+          "max_drawdown": 0.0,
+          "trades": 0,
+          "fees": 0.0
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "Reject: the backtest shows no trades and no return, while buy-and-hold gained 462.7%. The required profitability, half-period performance, trade-count, and benchmark tests are not met.",
+        "concerns": [
+          "The strategy made zero fills, so there is no evidence it is profitable or that its drawdown-and-recovery signal works.",
+          "It did not beat buy-and-hold, which returned 462.7% over the period.",
+          "Performance cannot be assessed across either half, and the strategy has no meaningful trade sample."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.0,
+        "sharpe": null,
+        "max_drawdown": 0.0,
+        "trades": 0,
+        "fees": -0.0
+      },
+      "cost_usd": 0.00190513
+    },
+    {
+      "id": "s006",
+      "idea": {
+        "name": "Weekend Liquidity Avoidance",
+        "hypothesis": "Weekend liquidity is often thinner and institutional participation lower than on weekdays, which may make BTC more exposed to abrupt, poorly absorbed moves. A fixed weekend-flat schedule tests that calendar-based liquidity-risk effect without reusing trend, breakout, or volatility signals; whether the avoided losses outweigh missed weekend gains and trading costs requires out-of-sample testing.",
+        "rules": "Use UTC timestamps. Hold 100% of available cash value in BTC from Monday 00:01 through Friday 23:59, and hold cash otherwise. At the close of Friday's 23:59 bar, submit a market sell for the entire BTC position; fill at the next bar's open. At the close of Sunday's 23:59 bar, submit a market buy using all available cash; fill at the next bar's open. Do not trade if already in the target state. Apply the stated fees, slippage, latency, and volume cap to each order; carry any unfilled quantity forward and cancel it when the target-state window ends."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 0.934771987325,
+        "sharpe": 0.9941187015053133,
+        "max_drawdown": 0.36687796768834063,
+        "trades": 406,
+        "fees": 3003.85073835
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.34048813682900003,
+          "sharpe": 0.9677961620357974,
+          "max_drawdown": 0.22881428967997083,
+          "trades": 217,
+          "fees": 1165.06990141
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 0.4449737002812386,
+          "sharpe": 1.0260715918746037,
+          "max_drawdown": 0.36687796768834063,
+          "trades": 189,
+          "fees": 1838.78083694
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "Reject: although both halves are profitable, the strategy loses badly to buy-and-hold and has a worse maximum drawdown. It therefore fails the required return-versus-risk benchmark, and the reported training results do not resolve out-of-sample robustness.",
+        "concerns": [
+          "It substantially underperforms buy-and-hold: +93.5% versus +462.7%, with a much lower Sharpe (0.99 versus 2.02).",
+          "It does not offer lower risk for comparable returns: maximum drawdown is -36.7%, worse than buy-and-hold's -33.1%.",
+          "The 406 fills incur 3,004 USDT in fees, a meaningful drag for a strategy that fails to beat the benchmark.",
+          "These are training-period results only; they do not establish that the calendar effect persists out of sample."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.17668899083904077,
+        "sharpe": 1.0558673088063684,
+        "max_drawdown": 0.2709826166882701,
+        "trades": 87,
+        "fees": 682.8507822800003
+      },
+      "cost_usd": 0.00199503
+    },
+    {
+      "id": "s007",
+      "idea": {
+        "name": "Uptrend Pullback",
+        "hypothesis": "In a rising market, temporary pullbacks may prompt dip-buying by longer-horizon investors, while waiting for a substantial discount to trend may avoid chasing price and reduce turnover. This tests pullback mean reversion conditional on an established uptrend, rather than standalone trend-following or breakout continuation.",
+        "rules": "Use only completed one-minute bars. At each UTC day’s final bar, calculate the 30-day and 90-day simple moving averages of completed daily closes. If flat, buy with all available cash at the next one-minute bar’s open when the close is at least 5% below the 30-day average and the 30-day average is above the 90-day average. If holding, sell the entire position at the next one-minute bar’s open when a daily close is at or above the 30-day average, or the 30-day average is at or below the 90-day average. No leverage; apply the stated fees, slippage, latency, and volume cap."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": -0.051152466440000044,
+        "sharpe": -0.13172346577546085,
+        "max_drawdown": 0.1734943546749992,
+        "trades": 11,
+        "fees": 110.6231162
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.013536323871000011,
+          "sharpe": 0.22477587821407746,
+          "max_drawdown": 0.06252428520384982,
+          "trades": 4,
+          "fees": 40.69962789
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": -0.06382483665107741,
+          "sharpe": -0.29266298516797595,
+          "max_drawdown": 0.1734943546749992,
+          "trades": 7,
+          "fees": 69.92348831
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The backtest fails the profitability, trade-count, and benchmark criteria, and does not show consistent acceptable performance across both halves. Reject before committing real money.",
+        "concerns": [
+          "The strategy loses 5.1% after costs over the full period, with negative Sharpe (-0.13).",
+          "Performance is weak in both halves and negative in the second half (-6.4%, Sharpe -0.29); the positive 1.4% first-half return rests on only four fills.",
+          "Eleven fills are far too few to establish a reliable edge.",
+          "It substantially underperforms buy-and-hold (+462.7%); its lower drawdown does not compensate for the loss and poor risk-adjusted results.",
+          "The provided results are training data only, so they do not establish out-of-sample robustness."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.13661194098693308,
+        "sharpe": 3.149047200180077,
+        "max_drawdown": 0.06724130484163894,
+        "trades": 3,
+        "fees": 32.45330122
+      },
+      "cost_usd": 0.00160203
+    },
+    {
+      "id": "s008",
+      "idea": {
+        "name": "UTC Close Reversal",
+        "hypothesis": "Funding-rate arbitrage is unavailable from OHLCV alone, so test a different spot-market mechanism: persistent buying near the UTC daily close may reflect scheduled portfolio rebalancing, while the following hours can reverse that temporary demand. A low-turnover, time-based intraday strategy can test this without reusing trend, breakout, or volatility signals; its edge is uncertain and must survive costs and subperiod checks.",
+        "rules": "At each UTC day’s 23:00 bar close, calculate the prior 60-minute return, from the close 60 bars earlier to the current close. If it is at least +0.8%, enter long at the next bar’s open, using all available cash subject to the 10%-of-bar-volume fill cap. Exit at the next bar’s open after 6 hours, or earlier if the position has lost 1.5% from its entry reference; evaluate that stop using bar closes and submit the exit for the following open. Hold no more than one position; otherwise remain flat. Apply the specified fees and slippage, and do not use future bars or intrabar stop fills."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": -0.11856047747300003,
+        "sharpe": -1.2982159637130126,
+        "max_drawdown": 0.15723010124125097,
+        "trades": 84,
+        "fees": 809.38453323
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": -0.011014814966999964,
+          "sharpe": -0.23763625252334367,
+          "max_drawdown": 0.06310389704331477,
+          "trades": 36,
+          "fees": 360.30086207
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": -0.10874345150318043,
+          "sharpe": -2.1820393751995706,
+          "max_drawdown": 0.11441205406808577,
+          "trades": 48,
+          "fees": 449.08367116
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The strategy fails the core profitability and benchmark criteria, and performs poorly in both halves of the sample. There is no evidence supporting deployment.",
+        "concerns": [
+          "The strategy loses 11.9% after costs, with a negative Sharpe of -1.30 and a 15.7% maximum drawdown.",
+          "It is unprofitable in both halves, especially 2024, when it returns -10.9% with a Sharpe of -2.18; it does not demonstrate robust subperiod performance.",
+          "Its 84 fills are more evidence than a handful, but do not rescue a consistently losing result.",
+          "It substantially underperforms buy-and-hold, which returned +462.7%, despite buy-and-hold's larger drawdown.",
+          "The specified execution model includes next-bar fills, fees, slippage, latency, and volume caps; the reported outcomes remain poor even with those costs applied."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": -0.08037438849556133,
+        "sharpe": -2.797221597672137,
+        "max_drawdown": 0.08097539730954542,
+        "trades": 26,
+        "fees": 233.03741928000002
+      },
+      "cost_usd": 0.00152143
+    },
+    {
+      "id": "s009",
+      "idea": {
+        "name": "U.S. Session Flow Reversal",
+        "hypothesis": "U.S. spot-Bitcoin ETF creation and redemption activity is concentrated during U.S. market hours and may create temporary price pressure that partly reverses after the cash session closes. Testing only the U.S.-close-to-overnight segment isolates this flow-timing mechanism rather than reusing the prior UTC-close signal; it remains speculative and must clear substantial execution costs.",
+        "rules": "Use America/New_York timestamps, including daylight-saving changes. At the first bar whose timestamp is 16:00 ET, if flat, buy with all available cash; submit the order then and fill at the next bar's open subject to the stated fee, slippage, latency, and volume cap. At the first bar whose timestamp is 09:30 ET on the next calendar day that is a U.S. equity trading day, sell the entire position at the next bar's open under the same execution rules. Do not open a position unless the planned exit is on the next U.S. equity trading day. Hold no other positions; make no discretionary overrides."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 0.005881899081999986,
+        "sharpe": 0.9205099436849626,
+        "max_drawdown": 0.0065813749471095445,
+        "trades": 2,
+        "fees": 19.96334918
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.005881899081999986,
+          "sharpe": 1.3033138936017967,
+          "max_drawdown": 0.0065813749471095445,
+          "trades": 2,
+          "fees": 19.96334918
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 0.0,
+          "sharpe": null,
+          "max_drawdown": 0.0,
+          "trades": 0,
+          "fees": 0.0
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The strategy fails the trade-count and both-halves requirements, and it does not beat holding or establish a clearly lower-risk comparable return. The backtest is far too sparse to justify committing real money.",
+        "concerns": [
+          "Only 2 fills—one completed round trip—so the reported return and Sharpe are not meaningful evidence.",
+          "There were no trades in the second half, so the strategy has not demonstrated acceptable performance across both halves.",
+          "It badly underperforms buy-and-hold: +0.6% versus +462.7% over the period, with no demonstrated risk-adjusted advantage that compensates for the missed return.",
+          "The result is training-only and cannot validate the speculative flow-reversal hypothesis."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.0,
+        "sharpe": null,
+        "max_drawdown": 0.0,
+        "trades": 0,
+        "fees": -0.0
+      },
+      "cost_usd": 0.0026971300000000003
+    },
+    {
+      "id": "s010",
+      "idea": {
+        "name": "Panic-Day Staged Re-entry",
+        "hypothesis": "Recurring dollar-cost averaging can reduce timing risk for investors with ongoing cash inflows, but with no external deposits it offers no inherent return edge over immediate buy-and-hold and should not be presented as one. A more testable, economically distinct use of OHLCV is to hold cash after unusually large one-day losses and re-enter gradually as short-horizon selling pressure subsides; this may avoid some panic-driven continuation, though it risks missing rebounds and requires strict net-of-cost validation.",
+        "rules": "Use UTC daily bars derived only from completed one-minute bars. Stay long by default. If a daily close is at least 8% below the close 24 hours earlier, submit a market sell for the entire position at the next one-minute bar open. Once flat, wait until a completed UTC day closes above its open; then buy 50% of available cash at the next one-minute open. Buy the remaining cash at the next one-minute open after the following UTC day also closes above its open. If either recovery day condition fails, reset the confirmation count to zero and remain flat. Do not use leverage or short; size orders to available cash/holdings and the 10% bar-volume cap. Apply the stated fees, slippage, and order delay. Evaluate against buy-and-hold on the full period and each half, including drawdown and trade counts; reject unless results are robust after costs."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 1.794594100011,
+        "sharpe": 1.9188826571248299,
+        "max_drawdown": 0.24967109859386177,
+        "trades": 3,
+        "fees": 35.18025869
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.767037070824,
+          "sharpe": 2.2258125241482705,
+          "max_drawdown": 0.14140357683333665,
+          "trades": 1,
+          "fees": 4.97135776
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 0.5814477440775332,
+          "sharpe": 1.6492391099105894,
+          "max_drawdown": 0.24967109859386177,
+          "trades": 2,
+          "fees": 30.208900930000002
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The strategy fails the required benchmark and trade-count tests, and the code does not faithfully implement its stated two-stage re-entry rule. The attractive returns are not enough to justify deployment.",
+        "concerns": [
+          "It loses badly to buy-and-hold over the full period: +179.5% versus +462.7%, despite only a modestly lower Sharpe and drawdown.",
+          "Three fills total—and only one in the first half and two in the second—are far too few to support a reliable performance claim.",
+          "The code does not implement the stated staged re-entry: after the first 50% buy, the positive-position guard prevents the second buy from ever being submitted.",
+          "The reported results are training-period results only; there is no out-of-sample evidence. The supplied half-period results also do not establish that the strategy beats buy-and-hold in either half."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.0584261704355713,
+        "sharpe": 0.5731722542774239,
+        "max_drawdown": 0.19941453418449862,
+        "trades": 2,
+        "fees": 13.34329356
+      },
+      "cost_usd": 0.00172363
+    },
+    {
+      "id": "s011",
+      "idea": {
+        "name": "Month-End Flow Window",
+        "hypothesis": "Portfolio rebalancing and reporting can concentrate demand around calendar month-end, potentially creating a short-lived price pressure in BTC that persists into the start of the next month. This is a distinct, low-turnover calendar-flow hypothesis, but the sample is short and the effect must be tested net of execution costs rather than assumed to exist.",
+        "rules": "At each UTC calendar month-end, buy with all available USDT at the next bar's open when the bar timestamp first reaches 00:00 UTC on the final calendar day of the month. Hold through the first calendar day of the next month, then sell the entire BTC position at the next bar's open when the timestamp first reaches 00:00 UTC on the second day. Stay flat at all other times. Use only completed bars to identify these timestamp boundaries; apply the stated fee, slippage, latency, and volume-cap rules to each order. Do not stack positions or use leverage."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": -0.17220666477500002,
+        "sharpe": -0.8036030423532222,
+        "max_drawdown": 0.2502650588356753,
+        "trades": 47,
+        "fees": 457.95304835
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.013670447913999961,
+          "sharpe": 0.18875354953061538,
+          "max_drawdown": 0.147835985022199,
+          "trades": 23,
+          "fees": 228.65168515999997
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": -0.18341802556586984,
+          "sharpe": -1.6050967141880643,
+          "max_drawdown": 0.2502650588356753,
+          "trades": 24,
+          "fees": 229.30136319000005
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The supplied backtest is unprofitable after costs, fails in the second half, and dramatically trails buy-and-hold. Reject; the code’s boundary timing also warrants correction before any retest.",
+        "concerns": [
+          "The strategy loses 17.2% overall after costs, with a sharply negative second half (-18.3%, Sharpe -1.61).",
+          "It substantially underperforms buy-and-hold, which returned +462.7% over the same period; the strategy’s lower drawdown does not compensate for its losses and extreme return gap.",
+          "Only 47 fills across two years provide limited evidence for a calendar effect, and the results do not show a robust advantage in either half.",
+          "The implementation appears inconsistent with the stated rule: it tests `close_ts` for midnight and submits an order for the next bar’s open, so the buy/sell execution may occur after the intended boundary."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.0339214513335202,
+        "sharpe": 0.8683407390813005,
+        "max_drawdown": 0.12201784585940365,
+        "trades": 12,
+        "fees": 106.98259032
+      },
+      "cost_usd": 0.0015774299999999997
+    },
+    {
+      "id": "s012",
+      "idea": {
+        "name": "Downside Gap Risk Pause",
+        "hypothesis": "A long-only strategy that remains invested through BTC’s strong advances but temporarily exits after unusually large downside gaps may reduce exposure to forced repricing and cascading sell pressure. Unlike intraday signal-chasing, it uses a rare daily risk event; whether the avoided losses outweigh missed rebounds and trading costs must be tested against buy-and-hold across both halves of the sample.",
+        "rules": "Use completed UTC daily bars aggregated only from observed one-minute bars. At each UTC day boundary, compute the prior day's close-to-close return. If it is at or below -8%, submit a sell for the entire BTC position; fill at the next one-minute bar's open, subject to the stated latency, slippage, fee, and volume cap. Stay flat for the next 3 complete UTC days. At the first bar after that pause, submit a buy for the maximum affordable amount and hold until another qualifying daily loss occurs. Start fully invested; never short or use leverage. Do not act on an incomplete daily bar."
+      },
+      "status": "rejected",
+      "builds": 2,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 4.427965022522,
+        "sharpe": 1.9979024602748414,
+        "max_drawdown": 0.3531830015094619,
+        "trades": 3,
+        "fees": 84.15339308
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 1.54527826631,
+          "sharpe": 2.345220187720712,
+          "max_drawdown": 0.2227974276323785,
+          "trades": 1,
+          "fees": 9.9418744
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 1.132437674151408,
+          "sharpe": 1.714452710255437,
+          "max_drawdown": 0.3531830015094619,
+          "trades": 2,
+          "fees": 74.21151868
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The strategy fails the required comparison with buy-and-hold and has far too few trades to support confidence in its results. Its reported returns do not show a compensating risk benefit, and the code also does not exactly implement the stated pause duration.",
+        "concerns": [
+          "It underperforms buy-and-hold over the full period: +442.8% versus +462.7%, with a worse maximum drawdown (-35.3% versus -33.1%) and nearly identical Sharpe.",
+          "Only three fills across two years provide too little evidence to establish a repeatable edge; the half-period fill counts are just one and two.",
+          "The code's re-entry timing appears one day later than the stated three-complete-day pause: a trigger at day D's boundary sets re-entry to D+4, though the described rule implies D+3.",
+          "Results are training-only, so there is no out-of-sample evidence that the rare-event threshold or pause rule generalizes."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.1339063463123309,
+        "sharpe": 0.7789351985398208,
+        "max_drawdown": 0.32191182711796207,
+        "trades": 2,
+        "fees": 29.01195247
+      },
+      "cost_usd": 0.0025039600000000004
+    },
+    {
+      "id": "s013",
+      "idea": {
+        "name": "Stabilized Selloff Reversal",
+        "hypothesis": "Large BTC moves can trigger stop orders and forced execution, temporarily pushing price away from value; after price stabilizes, patient buyers may absorb that flow and support a short-horizon rebound. A volatility-normalized, close-confirmed reversal tests this mechanism rather than calendar timing, trend, or breakout continuation, but its net edge must be established out of sample.",
+        "rules": "Use only completed one-minute bars. Calculate ATR as the mean true range over the prior 60 bars and rolling volume median over the prior 60 bars. Enter long at the next bar's open when the current close is at least 2.5 ATR below its close 60 bars earlier, current volume is at least 2 times the prior-60-bar median, and the current close is above the current bar's midpoint. Invest 25% of available equity, capped so the order is no more than 10% of the next bar's volume; if that cap prevents a fill, leave the unfilled amount in cash. Exit the entire position at the next bar's open after either 12 hours have elapsed or the close is 1 ATR below the entry fill price; do not pyramid or re-enter while holding. Apply the specified fees, slippage, latency, and next-open execution. Evaluate both sample halves, trade count, drawdown, and net results against buy-and-hold; do not deploy unless the edge survives those checks."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": -0.998222064335,
+        "sharpe": -18.07565687881292,
+        "max_drawdown": 0.998222586975,
+        "trades": 22231,
+        "fees": 8537.49089175
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": -0.959269216384,
+          "sharpe": -18.748617767136892,
+          "max_drawdown": 0.959269216384,
+          "trades": 11178,
+          "fees": 8198.687335040053
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": -0.9563490925742566,
+          "sharpe": -17.424637156033356,
+          "max_drawdown": 0.9568881283940935,
+          "trades": 11053,
+          "fees": 338.80355670994686
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The training results are decisively negative in both halves and vastly worse than buy-and-hold, so this should not be considered for deployment. The execution-cap mismatch further weakens confidence in the backtest as evidence for the stated rules.",
+        "concerns": [
+          "The strategy loses 99.8% overall, with severe losses in both halves; it is not profitable after costs.",
+          "It dramatically underperforms buy-and-hold, which returned +462.7% with a far smaller drawdown.",
+          "The 22,231 fills and 8,537 USDT in fees indicate costs are overwhelming the strategy; the reported results fail the basic viability test.",
+          "There is also a serious implementation mismatch: sizing is capped using the completed signal bar’s volume, not the next bar’s volume as required, and the code’s affordability call uses the signal close despite next-open execution."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.0019521695897837255,
+        "sharpe": 0.6393476850905795,
+        "max_drawdown": 0.004963915741033958,
+        "trades": 0,
+        "fees": -0.0
+      },
+      "cost_usd": 0.00187673
+    },
+    {
+      "id": "s014",
+      "idea": {
+        "name": "Friday Expiry Window",
+        "hypothesis": "BTC options commonly expire at 08:00 UTC on Fridays; after expiry, dealers may unwind hedges, creating temporary spot demand. Test whether that post-expiry flow produces a repeatable long-side premium, without assuming it exists or extrapolating it beyond the specified window.",
+        "rules": "At 08:00 UTC each Friday, if flat, submit a market buy for the full available cash balance; fill at the next bar's open, subject to the 10% bar-volume cap, with the stated fee and slippage. At 16:00 UTC that Friday, if holding BTC, submit a market sell for the full position; fill at the next bar's open under the same execution limits. Hold cash at all other times. Use only timestamps known at decision time; do not add signals or extend the holding window. Evaluate net of costs against buy-and-hold and report results separately for each half of the sample."
+      },
+      "status": "rejected",
+      "builds": 2,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": -0.05970023827600002,
+        "sharpe": -0.22089631392228665,
+        "max_drawdown": 0.17331134955757824,
+        "trades": 208,
+        "fees": 2001.97054916
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": -0.01792259547999997,
+          "sharpe": -0.1549313824622751,
+          "max_drawdown": 0.10833785820256216,
+          "trades": 104,
+          "fees": 1036.7445443999998
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": -0.04254007128533743,
+          "sharpe": -0.27254965170794193,
+          "max_drawdown": 0.133441867573851,
+          "trades": 104,
+          "fees": 965.2260047600003
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The reported backtest fails the profitability, both-halves, and benchmark requirements. The hypothesis is not supported by these results, so this should not be committed to real money.",
+        "concerns": [
+          "The strategy loses 6.0% after costs overall, with negative Sharpe and a 17.3% maximum drawdown.",
+          "It loses in both halves: -1.8% in 2023 and -4.3% in 2024, so the result is not supported across the sample.",
+          "Its 208 fills provide repeated observations, but they do not overcome the consistently negative performance; fees alone were 2,002 USDT.",
+          "It substantially underperforms buy-and-hold, which returned +462.7%, despite buy-and-hold's larger drawdown."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.0991509376818982,
+        "sharpe": 1.6493060516862459,
+        "max_drawdown": 0.056790562590327893,
+        "trades": 52,
+        "fees": 578.36369141
+      },
+      "cost_usd": 0.0016605600000000002
+    },
+    {
+      "id": "s015",
+      "idea": {
+        "name": "ETF-Session Flow Carry",
+        "hypothesis": "A BTC spot ETF’s U.S. trading session can produce one-sided demand or supply that is not fully absorbed before the cash close; rather than betting on an overnight reversal, test whether a positive U.S.-session move accompanied by strong volume persists briefly into the next session. This is a distinct, low-frequency flow-continuation hypothesis, not evidence of an edge until it beats costs and is validated by subperiods.",
+        "rules": "Use UTC timestamps and only completed bars. Define the U.S. cash session as 14:30–21:00 UTC (15:30–22:00 UTC during U.S. daylight time; implement the DST calendar explicitly). At 21:00 UTC, if flat, calculate session return from the 14:30 open to the 20:59 close and session volume divided by the trailing 20 same-length U.S. sessions’ mean volume. Enter long only when session return is at least +0.5% and the volume ratio is at least 1.25; submit at the first eligible next-bar open. Exit at the first bar open at or after 14:30 UTC on the following trading day, or earlier if the position is down 2.0% from its actual entry fill, with the stop triggered using completed-bar data and filled at the next bar open. No pyramiding; otherwise remain flat. Size each entry to 100% of available equity, subject to cash and the 10%-of-bar-volume fill cap; account for 0.1% fee and 0.02% slippage on every fill. Evaluate net returns against buy-and-hold and report both calendar-year halves, drawdown, turnover, trade count, and sensitivity to modest threshold changes before drawing conclusions."
+      },
+      "status": "rejected",
+      "builds": 2,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 0.2497459387979999,
+        "sharpe": 0.6991841775308307,
+        "max_drawdown": 0.1927324569753585,
+        "trades": 166,
+        "fees": 1796.41175392
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.04157800101300002,
+          "sharpe": 0.3120967295867507,
+          "max_drawdown": 0.13496473840506884,
+          "trades": 82,
+          "fees": 880.0596481700001
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 0.19985823201195063,
+          "sharpe": 1.0780976579936843,
+          "max_drawdown": 0.097577462327945,
+          "trades": 84,
+          "fees": 916.3521057499999
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "Reject: the reported net results do not beat buy-and-hold, and the drawdown reduction comes with far lower returns. The first half is weak, and the training-only evidence plus unresolved signal-timing ambiguity is insufficient to justify risking capital.",
+        "concerns": [
+          "The strategy substantially underperforms buy-and-hold: +25.0% versus +462.7%, with a much lower Sharpe (0.70 versus 2.02). Its lower drawdown does not compensate for the dramatically lower return, so it does not offer similar returns at lower risk.",
+          "Performance is uneven across halves: 2023 returned only +4.2% with a 0.31 Sharpe, while most of the total gain came in 2024. The evidence does not establish robust performance across regimes, and the reported results are training data only.",
+          "The results report 166 fills, which is about 83 round trips—not an especially large sample for judging a low-frequency strategy. No threshold-sensitivity results or independent validation are provided.",
+          "There is a potential signal-timing inconsistency in the code: it evaluates at `minute == end` using `bar.open`, while the stated signal uses the completed session’s final close. Depending on the bar timestamp convention, this may omit the final session bar or use a price that does not match the specified signal. Verify the bar semantics before trusting the backtest."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.03964556969117927,
+        "sharpe": 0.529419649692879,
+        "max_drawdown": 0.10420221549880918,
+        "trades": 42,
+        "fees": 487.22384275
+      },
+      "cost_usd": 0.00402986
+    },
+    {
+      "id": "s016",
+      "idea": {
+        "name": "Turnover Absorption Confirmation",
+        "hypothesis": "A sharp rise in BTC turnover without a corresponding price move can indicate that opposing orders are absorbing aggressive flow; after that inventory transfer, a modest upward move may persist as the imbalance resolves. This tests volume-price absorption and delayed confirmation—not calendar timing, trend filters, or breakout chasing—and remains only a hypothesis until it survives realistic costs and out-of-sample checks.",
+        "rules": "Use only completed one-minute bars. For each bar t, calculate 60-bar turnover as the sum of close×volume over bars t−59…t, and compare it with the median of the preceding 1,440 completed bars’ one-minute close×volume. Define the 60-bar return from close[t−60] to close[t]. When flat, enter long at the next bar’s open if (1) 60-bar turnover is at least 2× that prior-bar median multiplied by 60, (2) the absolute 60-bar return is at most 0.5%, and (3) close[t] is at least 0.15% above close[t−5]. Enter with all available cash, subject to the 10%-of-next-bar-volume fill cap; leave any unfilled cash idle. On entry, set a fixed exit at the earlier of 360 bars after entry or a 1.5% close-to-entry loss; exit at the next bar’s open after that condition is observed. Also exit at the next bar’s open if the close is 3% above entry, to realize the hypothesized short-lived resolution. Stay flat until a new qualifying signal; charge specified fees and slippage, and do not permit a sell exceeding holdings."
+      },
+      "status": "rejected",
+      "builds": 2,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": -0.235671181454,
+        "sharpe": -0.8331557724576748,
+        "max_drawdown": 0.4018573859639654,
+        "trades": 464,
+        "fees": 4426.37750764
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": -0.257933168054,
+          "sharpe": -1.3285346845222896,
+          "max_drawdown": 0.4018573859639654,
+          "trades": 464,
+          "fees": 4426.377507639998
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 0.029998481314220005,
+          "sharpe": 1.4680104842257848,
+          "max_drawdown": 0.01403358825679067,
+          "trades": 0,
+          "fees": 1.8189894035458565e-12
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The strategy fails the core profitability and benchmark tests, and it does not show meaningful performance in both halves of the period. Reject before considering live capital.",
+        "concerns": [
+          "The strategy loses 23.6% overall, with a -0.83 Sharpe and -40.2% maximum drawdown; it is not profitable after costs.",
+          "Results are severely concentrated in the first half: that half loses 25.8%, while the second half has zero fills, so its reported +3.0% does not demonstrate strategy performance there.",
+          "It dramatically underperforms buy-and-hold, which returns 462.7% with a better Sharpe and smaller drawdown.",
+          "The 464 fills and 4,426 USDT in fees reinforce that trading costs are material; the backtest provides no evidence the signal overcomes them."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.04772306535430704,
+        "sharpe": 0.695781389300501,
+        "max_drawdown": 0.11528920441611158,
+        "trades": 0,
+        "fees": -0.0
+      },
+      "cost_usd": 0.00296126
+    },
+    {
+      "id": "s017",
+      "idea": {
+        "name": "Unfiltered Spot Hold",
+        "hypothesis": "After many tactical OHLCV rules fail to beat the benchmark, the most defensible next test is whether any added timing rule helps at all. Continuous spot exposure captures BTC’s long-run appreciation without signal delay, missed rebounds, or repeated execution costs; it is a benchmark, not a claim of excess edge.",
+        "rules": "At the first available bar, buy BTC with all 10,000 USDT, subject to the 10%-of-bar-volume fill cap; if the order cannot fill fully, carry the remainder forward and submit it at each next bar’s open. Pay the stated fee and slippage on every fill. Make no subsequent trades; hold through the final bar and report marked-to-market return, daily Sharpe, and drawdown alongside the stated buy-and-hold benchmark."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 4.62733233281,
+        "sharpe": 2.01518821602433,
+        "max_drawdown": 0.3308754667688791,
+        "trades": 1,
+        "fees": 9.9418744
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 1.54527826631,
+          "sharpe": 2.345220187720712,
+          "max_drawdown": 0.2227974276323785,
+          "trades": 1,
+          "fees": 9.9418744
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 1.2107613850980257,
+          "sharpe": 1.7559268804545114,
+          "max_drawdown": 0.3308754667688791,
+          "trades": 0,
+          "fees": 0.0
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "This is a clear and simple benchmark, but it fails the requirement to beat buy-and-hold or offer clearly lower risk for a similar return. Reject it as a strategy candidate, while retaining it as a useful baseline.",
+        "concerns": [
+          "It exactly matches the stated buy-and-hold benchmark, so it provides no evidence of an advantage or lower risk.",
+          "The +462.7% return reflects BTC’s appreciation, not a timing edge; the strategy has only one fill and therefore does not establish that any added rule improves results.",
+          "The backtest is training-period evidence only, with no out-of-sample validation."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.14458122018209285,
+        "sharpe": 0.8150021723309383,
+        "max_drawdown": 0.3158980180867267,
+        "trades": 0,
+        "fees": -0.0
+      },
+      "cost_usd": 0.00170793
+    },
+    {
+      "id": "s018",
+      "idea": {
+        "name": "Rally Exhaustion Pause",
+        "hypothesis": "BTC’s strongest short-term rallies can be amplified by momentum-driven buying, while abrupt exhaustion after an unusually extended run may expose holders to a brief reversal. A sparse, close-confirmed exit-and-reentry rule tests this risk-management effect rather than adding a new entry signal; it may still underperform buy-and-hold if it exits before continued gains.",
+        "rules": "Use only completed one-minute bars. Compute the return from the close 24 hours ago to the current close. If that return exceeds +12%, sell all BTC at the next bar’s open and remain flat for 24 hours. At the end of the pause, buy with all available cash at the next bar’s open. If another trigger occurs while invested, apply the same exit rule. Long-only; no leverage or shorting. Apply 0.1% fees, 0.02% slippage, 100 ms order latency, and the 10%-of-bar-volume fill cap to every order; do not assume a fill if capacity is insufficient. Evaluate against buy-and-hold, including both half-periods and trade counts."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 0.0,
+        "sharpe": null,
+        "max_drawdown": 0.0,
+        "trades": 0,
+        "fees": 0.0
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.0,
+          "sharpe": null,
+          "max_drawdown": 0.0,
+          "trades": 0,
+          "fees": -0.0
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 0.0,
+          "sharpe": null,
+          "max_drawdown": 0.0,
+          "trades": 0,
+          "fees": 0.0
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "Reject: the supplied backtest has no trades and substantially underperforms buy-and-hold. The implementation also lacks a way to establish the initial position required for its exit rule to operate.",
+        "concerns": [
+          "The backtest shows zero fills in both halves, so the strategy has no demonstrated profitability or meaningful trade sample.",
+          "The strategy returns 0.0% versus +462.7% for buy-and-hold over the full period, and therefore fails the required benchmark comparison.",
+          "The code only evaluates exit triggers while already holding BTC, but provides no initial-entry rule; starting flat, it never enters and cannot test the stated exit-and-reentry idea.",
+          "If a reentry order cannot fill because of the volume cap, the code clears pause_until when submitting it and does not retry, which may leave the strategy flat indefinitely. The reported results do not establish how this case is handled. "
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.0,
+        "sharpe": null,
+        "max_drawdown": 0.0,
+        "trades": 0,
+        "fees": -0.0
+      },
+      "cost_usd": 0.00168373
+    },
+    {
+      "id": "s019",
+      "idea": {
+        "name": "Drawdown Budget Exit",
+        "hypothesis": "A modest allocation to BTC may be exposed to prolonged bear-market losses without requiring a forecast of short-term returns. A slow, drawdown-triggered de-risking rule tests whether avoiding severe underwater periods improves risk-adjusted performance enough to offset missed rebounds and execution costs; it is a risk-management hypothesis, not an expectation of beating buy-and-hold.",
+        "rules": "Use only completed bars. Start fully invested with available cash; mark the running peak as the highest completed-bar close since the last entry. If a completed close is at least 25% below that peak, submit a market sell for the entire BTC position, filled at the next bar open under the stated execution rules. While flat, stay in cash until a completed close is at least 10% above the lowest completed-bar close since the exit; then submit a market buy with all available cash for the next bar open. Reset the peak on entry. Apply the stated fees, slippage, latency, and volume cap; never short or use leverage."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 4.009279434187,
+        "sharpe": 1.8880880005810494,
+        "max_drawdown": 0.3646267636009853,
+        "trades": 5,
+        "fees": 134.36844203
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 1.54527826631,
+          "sharpe": 2.345220187720712,
+          "max_drawdown": 0.2227974276323785,
+          "trades": 1,
+          "fees": 9.9418744
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 0.9679522881024447,
+          "sharpe": 1.5279979620959512,
+          "max_drawdown": 0.3646267636009853,
+          "trades": 4,
+          "fees": 124.42656763000001
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The evidence fails the required comparison with buy-and-hold and is based on too few trades to be meaningful. Reject pending correctly sized, cost-aware testing with substantially more data and trades.",
+        "concerns": [
+          "The strategy underperforms buy-and-hold on return (+400.9% vs. +462.7%) and Sharpe (1.89 vs. 2.02), while also having a worse maximum drawdown (-36.5% vs. -33.1%); it offers no demonstrated risk benefit.",
+          "Only five fills over the full period—and one in the first half—are far too few to establish that the rule works reliably in either half.",
+          "The reported second-half return (+96.8%) is not comparable to the full-period result without clear half-period return methodology, and the backtest provides no out-of-sample evidence.",
+          "The code appears to invest only 50% of available cash (`SIZING_MARGIN_PPM = 5_000`), which does not match the stated rule to buy with all available cash and makes the reported comparison harder to interpret."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.07650522992703057,
+        "sharpe": 0.5493163570733882,
+        "max_drawdown": 0.3562441614497323,
+        "trades": 2,
+        "fees": 27.39182072
+      },
+      "cost_usd": 0.00159593
+    },
+    {
+      "id": "s020",
+      "idea": {
+        "name": "Monthly Relative-Momentum Allocation",
+        "hypothesis": "Bitcoin’s long-run upward drift may be strongest during persistent positive-return periods, while short-horizon momentum can be noisy and costly to trade. A slow, monthly rebalanced exposure rule tests whether modestly reducing BTC exposure after sustained weakness improves risk-adjusted outcomes without reacting to intraday patterns; it is a new timing hypothesis, not an assumed edge.",
+        "rules": "At each UTC month boundary, using only completed bars from the prior 90 calendar days, calculate BTC’s close-to-close return. If the return is positive, target 100% of equity in BTC; otherwise target 50% BTC and 50% USDT. Rebalance at the next one-minute bar’s open to the target, buying or selling only the amount needed; never short or use leverage. Hold the target allocation until the next month boundary. Apply the stated fees, slippage, latency and volume cap to all fills."
+      },
+      "status": "rejected",
+      "builds": 2,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 2.196004280989,
+        "sharpe": 1.541903731145635,
+        "max_drawdown": 0.33123386314777714,
+        "trades": 3,
+        "fees": 9.98991431
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.44407826638900016,
+          "sharpe": 1.308587835321441,
+          "max_drawdown": 0.2160896725310906,
+          "trades": 3,
+          "fees": 9.98991431
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 1.2130496011341898,
+          "sharpe": 1.7562949194124795,
+          "max_drawdown": 0.33123386314777714,
+          "trades": 0,
+          "fees": 0.0
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "It fails the required benchmark comparison and does not demonstrate meaningful, repeatable trading activity. Lower exposure did not reduce drawdown, so the results provide no compensating risk benefit.",
+        "concerns": [
+          "The strategy substantially underperforms buy-and-hold: +219.6% versus +462.7%, with a lower Sharpe (1.54 versus 2.02) and no improvement in maximum drawdown (-33.1% for both).",
+          "The reported trading evidence is too sparse to establish a meaningful timing edge: only 3 fills overall, and none in the second half.",
+          "The second-half result is not evidence of a working monthly rebalance: zero fills despite the stated monthly schedule suggests the target did not change or the implementation/results need verification.",
+          "These are training-only results; there is no out-of-sample evidence."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.14499780493486325,
+        "sharpe": 0.8155005421245503,
+        "max_drawdown": 0.3166910446720524,
+        "trades": 2,
+        "fees": 0.0516067
+      },
+      "cost_usd": 0.00283646
+    },
+    {
+      "id": "s021",
+      "idea": {
+        "name": "Session VWAP Reclaim",
+        "hypothesis": "BTC spot demand can be temporarily constrained when price falls below its volume-weighted average cost over a recent session, but reclaiming that level may signal that buyers have absorbed the supply. A single, slow VWAP-reclaim test is distinct from the prior breakout and wick rules; it is only worth pursuing if a cost-aware backtest shows repeatable gains over buy-and-hold across both halves of the sample.",
+        "rules": "Use UTC calendar days and only completed one-minute bars. For each bar, calculate the current day's cumulative VWAP as sum(typical_price × volume) / sum(volume), where typical_price = (high + low + close) / 3. When flat, enter long if the previous close was below its day's VWAP and the latest close is above its day's VWAP; submit a market order for the next bar's open. When long, exit if the latest close is below its day's VWAP; submit a market sell for the next bar's open. At UTC midnight, reset the day's VWAP accumulator; do not trade on the first bar of a day. Allocate all available cash on entry, and sell the full position on exit, subject to fees, slippage, latency, and the 10%-of-bar-volume fill cap. Do not use current-bar data before its close or assume a fill on the signal bar."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": "lost over 90% during the warm-up, before the test period began",
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": -0.999974265694,
+        "sharpe": -9.849889769330368,
+        "max_drawdown": 0.9999745484360001,
+        "trades": 9788,
+        "fees": 9204.24964544
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": -0.999974265694,
+          "sharpe": -16.26912778375535,
+          "max_drawdown": 0.9999745484360001,
+          "trades": 9788,
+          "fees": 9204.249645440019
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 0.0,
+          "sharpe": null,
+          "max_drawdown": 0.0,
+          "trades": 0,
+          "fees": -1.8189894035458565e-11
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The results fail the profitability, consistency, and buy-and-hold comparison requirements by a wide margin. Reject before any further consideration for real money.",
+        "concerns": [
+          "The strategy loses 100% over the full period, with a 100% maximum drawdown; it is not profitable after costs.",
+          "Performance is entirely concentrated in the first half: it records 9,788 fills and 9,204 USDT in fees there, then makes no trades in the second half. This is not repeatable evidence across both halves.",
+          "It dramatically underperforms buy-and-hold, which returned +462.7% with a -33.1% maximum drawdown.",
+          "The extreme fill count and fee burden are consistent with costly churn, not a viable slow reclaim strategy."
+        ]
+      },
+      "out_of_sample": null,
+      "cost_usd": 0.00140233
+    },
+    {
+      "id": "s022",
+      "idea": {
+        "name": "Post-Shock Cooldown",
+        "hypothesis": "Large BTC price moves can trigger stop-losses and forced selling, while the market may absorb that supply over several days. A slow, fixed-horizon post-shock entry tests this distinct mechanism without repeatedly reacting to noisy intraday signals; it is only a hypothesis and must beat buy-and-hold after costs and across subperiods.",
+        "rules": "Use only completed bars. Compute the close-to-close return over the preceding 24 hours (1,440 bars). When that return is at or below -10%, and the strategy is flat, schedule a buy for the next bar’s open, provided at least 7 days have passed since the previous entry signal. Invest 25% of current equity, capped by available cash and the 10%-of-next-bar-volume fill limit. Hold for 7 days (10,080 bars), then schedule a full sale for the next bar’s open; if a new qualifying shock occurs while already invested, do not add. Apply the specified fee and slippage to every fill, and permit no borrowing or short selling."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 0.10345774750799985,
+        "sharpe": 1.1429074843122855,
+        "max_drawdown": 0.03583145289106475,
+        "trades": 10,
+        "fees": 26.84898892
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.008165249983999923,
+          "sharpe": 0.519089155488271,
+          "max_drawdown": 0.01371054595523258,
+          "trades": 2,
+          "fees": 5.05780096
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 0.09452071227957148,
+          "sharpe": 1.5344953976984848,
+          "max_drawdown": 0.03583145289106475,
+          "trades": 8,
+          "fees": 21.791187960000002
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The strategy substantially underperforms buy-and-hold and has too few trades, with nearly all gains concentrated in the second half. It therefore does not meet the stated approval criteria.",
+        "concerns": [
+          "The strategy returns +10.3% versus +462.7% for buy-and-hold, so it fails the required benchmark despite its lower drawdown.",
+          "Performance is not convincing across both halves: the first half has only 2 fills and +0.8%; the second half supplies nearly all the gains.",
+          "Only 10 fills over the entire test is too little evidence to establish a reliable edge; the reported Sharpe is especially fragile at that sample size.",
+          "The code does not implement the stated 25% sizing: SIZING_MARGIN_PPM is 5,000 (0.5%), and the fill handler condition `fill.order_id == fill.order_id` is tautological. These discrepancies make the backtest implementation harder to trust."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.017493911719000055,
+        "sharpe": 0.6332544124289287,
+        "max_drawdown": 0.04678169592984241,
+        "trades": 4,
+        "fees": 10.05458991
+      },
+      "cost_usd": 0.00161903
+    },
+    {
+      "id": "s023",
+      "idea": {
+        "name": "Downside Semivolatility Gate",
+        "hypothesis": "BTC’s volatility clusters, but losses and gains are not symmetric: sustained downside pressure may be more informative about near-term crash risk than volatility alone. A slow, downside-semivolatility exposure rule tests whether selectively reducing risk during persistently lopsided selling can improve risk-adjusted results without reacting to individual shocks; it is a risk-control hypothesis, not a presumed return edge.",
+        "rules": "At each UTC day boundary, using only completed one-minute bars, calculate the standard deviation of negative hourly log returns over the prior 14 days (336 completed hourly returns). If this downside semivolatility is above its trailing 180-day 75th percentile, target 25% of account equity in BTC; otherwise target 100%. Rebalance once per day at the first bar open after the boundary, using the prior close to determine the target quantity; buy or sell only the difference, never short, and leave the remainder in USDT. Apply the specified fee, slippage, latency, and bar-volume cap to fills; if a rebalance cannot be completed, continue attempting the remaining amount on subsequent bar opens. Initialize at 100% BTC exposure. Use no future observations in percentile calculation; require at least 180 days of history before enabling the gate, keeping the initial exposure unchanged until then."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 4.624487437125,
+        "sharpe": 2.0116048516987286,
+        "max_drawdown": 0.33123449605341415,
+        "trades": 3,
+        "fees": 9.98992625
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 1.541356177725,
+          "sharpe": 2.335911744615939,
+          "max_drawdown": 0.2235041954932237,
+          "trades": 3,
+          "fees": 9.989926249999998
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 1.2130536452429674,
+          "sharpe": 1.756295569498863,
+          "max_drawdown": 0.33123449605341415,
+          "trades": 0,
+          "fees": 1.7763568394002505e-15
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "Reject: the backtest is effectively buy-and-hold, with no demonstrated improvement in return or risk and too few trades to evaluate the rule. It does not meet the evidence threshold for risking capital.",
+        "concerns": [
+          "The strategy does not beat buy-and-hold: its whole-period return is +462.4% versus +462.7%, with slightly worse Sharpe and the same maximum drawdown.",
+          "Only 3 fills occurred across two years, far too few to establish that the gate adds value; there were no fills in the second half.",
+          "The second-half return is consistent with simply retaining BTC exposure, so the results do not show the risk-control rule helping in both halves.",
+          "These are training-data results only, and the very small performance difference from buy-and-hold provides no persuasive evidence of an edge after execution costs."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.1450187217149439,
+        "sharpe": 0.8155464213291284,
+        "max_drawdown": 0.3167172005829961,
+        "trades": 0,
+        "fees": -0.0
+      },
+      "cost_usd": 0.00222463
+    },
+    {
+      "id": "s024",
+      "idea": {
+        "name": "Range Expansion Hold",
+        "hypothesis": "A sharp increase in BTC’s intraday range can leave market makers and short-horizon traders temporarily inventory-constrained; if price then holds near the bar’s high, residual buy demand may carry into the next session. This is a testable, low-frequency range-and-close-location effect, not a claim that volatility alone predicts returns.",
+        "rules": "Use only completed bars. For each UTC day, compute its high-low range divided by its open, and the close location (close−low)/(high−low). Signal at the final one-minute bar of the day only when that day’s normalized range exceeds the median of the previous 30 completed UTC-day ranges and its close location is at least 0.8. If flat, buy with all available cash at the next bar’s open; if already long, do nothing. Exit after holding 24 hours, selling the full position at the next bar’s open; do not re-enter until a later qualifying daily signal. Apply the stated fees, slippage, latency, and volume cap to every fill, and never use the incomplete current day in the rolling median."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 0.465100497276,
+        "sharpe": 1.235739730441951,
+        "max_drawdown": 0.12321432635219022,
+        "trades": 28,
+        "fees": 269.86943874
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.12650286237599984,
+          "sharpe": 0.8602301409740166,
+          "max_drawdown": 0.12321432635219022,
+          "trades": 28,
+          "fees": 269.8694387399999
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 0.30055524534775513,
+          "sharpe": 1.5609388426496351,
+          "max_drawdown": 0.12088522918374843,
+          "trades": 0,
+          "fees": 1.1368683772161603e-13
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "Reject: the supplied results do not show that the strategy beats holding or offers a compelling risk-adjusted alternative, and the second-half return/fill contradiction prevents trusting the split-period evidence. The low trade count and training-only evaluation add further uncertainty.",
+        "concerns": [
+          "The strategy substantially underperforms buy-and-hold: +46.5% versus +462.7%, with a lower Sharpe (1.24 versus 2.02). Its smaller drawdown does not compensate for the much lower return enough to establish a clearly better risk-adjusted result.",
+          "The second-half report is internally inconsistent: it shows +30.1% return but zero fills, while the whole-period fill count equals the first half’s 28. This makes the claimed period-by-period performance unreliable and requires investigation.",
+          "Only 28 fills over two years is too little evidence to establish a robust effect; moreover, the strategy has no trades in the reported second half, so it does not demonstrate consistent activity across both halves.",
+          "The backtest is training data only, with no out-of-sample evidence. The code also sizes using the signal bar’s close despite execution at the next bar’s open, so realistic next-open affordability and fill constraints need verification. "
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": -0.21758554686010834,
+        "sharpe": -2.540842214988093,
+        "max_drawdown": 0.26871710221407424,
+        "trades": 52,
+        "fees": 441.21222724000006
+      },
+      "cost_usd": 0.0016499300000000002
+    },
+    {
+      "id": "s025",
+      "idea": {
+        "name": "Macro Reaction Continuation",
+        "hypothesis": "Bitcoin’s large scheduled U.S. macroeconomic announcements can cause temporary repricing and unusually wide intraday ranges. Rather than guessing the announcement direction, test whether price continuation after the initial reaction carries over briefly; the sparse event schedule limits turnover, but this is only a hypothesis and must be evaluated against buy-and-hold after realistic costs.",
+        "rules": "Use UTC timestamps and a fixed, public event calendar of scheduled U.S. CPI and FOMC release dates/times, specified before backtesting; do not infer events from price data. At each event, observe the first 15 complete one-minute bars after the scheduled release. If their close-to-close return is positive, buy at the next bar’s open; if negative or zero, remain flat. Hold for 6 hours from entry, then sell at the next bar’s open. Do not overlap positions; if an event occurs while holding, ignore it. Use all available cash for each entry, subject to spot-only constraints, 10% of bar volume fill caps, and the stated fees and slippage. Signals use only completed bars; fills occur no earlier than the next bar open. Report results net of execution costs, with both-half and buy-and-hold comparisons; treat the small number of events as a major limitation, not evidence of robustness."
+      },
+      "status": "rejected",
+      "builds": 2,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 0.0,
+        "sharpe": null,
+        "max_drawdown": 0.0,
+        "trades": 0,
+        "fees": 0.0
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.0,
+          "sharpe": null,
+          "max_drawdown": 0.0,
+          "trades": 0,
+          "fees": -0.0
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 0.0,
+          "sharpe": null,
+          "max_drawdown": 0.0,
+          "trades": 0,
+          "fees": 0.0
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "Reject: the submitted results show no trades and no strategy performance to assess, while buy-and-hold substantially outperformed. The implementation and calendar coverage also need validation before any backtest can support the hypothesis.",
+        "concerns": [
+          "The backtest produced zero fills and zero return, so there is no evidence that the strategy is profitable after costs or performs acceptably in either half.",
+          "The code’s calendar contains only 2024 events despite a 2023–2024 test, and its timestamp matching/observation logic may prevent intended signals; the reported run does not validate the stated rules.",
+          "It decisively fails the buy-and-hold comparison: buy-and-hold returned +462.7% over the period.",
+          "Even if corrected, the sparse event schedule offers few observations, so meaningful robustness is unestablished."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.0,
+        "sharpe": null,
+        "max_drawdown": 0.0,
+        "trades": 0,
+        "fees": -0.0
+      },
+      "cost_usd": 0.00375046
+    },
+    {
+      "id": "s026",
+      "idea": {
+        "name": "Early-Month Flow Window",
+        "hypothesis": "BTC spot holders may face predictable month-turn liquidity and inventory effects that are not captured by month-end flow alone: portfolio cash flows and payroll-related reallocations can create persistent demand early in the month. A narrow, fixed holding window tests this calendar-flow mechanism with low turnover, but should be treated as unproven unless it beats buy-and-hold net of costs in both halves and out of sample.",
+        "rules": "Use UTC timestamps. Hold either 100% of available spot equity or 100% cash; no leverage. At 00:00 UTC on the 2nd calendar day of each month, if flat, submit a market buy for the maximum affordable BTC quantity. At 00:00 UTC on the 8th calendar day, if holding BTC, submit a market sell for the full position. Signals are evaluated using only bars available at that time; execute at the next bar open, applying the stated fees, slippage, latency, and volume cap. Do not place overlapping orders. If an order is only partially filled due to the volume cap, leave the unfilled amount unchanged and retry at subsequent bar opens until filled or until the window ends. Test both calendar halves and an untouched out-of-sample period; reject unless net results show a repeatable advantage over buy-and-hold or clearly lower risk at comparable return."
+      },
+      "status": "rejected",
+      "builds": 2,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": -0.07176426631400012,
+        "sharpe": -0.07539244394665591,
+        "max_drawdown": 0.3569338596572157,
+        "trades": 90,
+        "fees": 458.23698974
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": -0.014325750849000007,
+          "sharpe": -0.02174461405244429,
+          "max_drawdown": 0.1773023092549514,
+          "trades": 47,
+          "fees": 221.94159659
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": -0.058273324594280695,
+          "sharpe": -0.1109006415916777,
+          "max_drawdown": 0.3569338596572157,
+          "trades": 43,
+          "fees": 236.29539315000002
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The supplied results fail the core profitability, both-halves consistency, and benchmark criteria. The strategy should be rejected before committing real money.",
+        "concerns": [
+          "The strategy loses 7.2% after costs over the full period and is negative in both halves, so it shows no repeatable profitability.",
+          "It dramatically underperforms buy-and-hold (+462.7%) and has a worse maximum drawdown (-35.7% versus -33.1%).",
+          "The 90 fills are not enough to rescue a consistently negative result; fees are material at 458 USDT.",
+          "Only training-period results are provided, with no untouched out-of-sample evidence.",
+          "The code’s timestamp and window-state handling may not implement the stated schedule precisely: it changes state on bars closing at 00:00, while the spec calls for orders at 00:00 and next-bar-open execution; the retry logic should also be verified against the intended window-end behavior."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": -0.08731410796666539,
+        "sharpe": -0.5534835994552811,
+        "max_drawdown": 0.20565778836730172,
+        "trades": 21,
+        "fees": 123.94849375000001
+      },
+      "cost_usd": 0.00249246
+    },
+    {
+      "id": "s027",
+      "idea": {
+        "name": "Weekly Momentum Overlay",
+        "hypothesis": "A common feature of the failed tactical rules is repeatedly moving in and out of BTC exposure, which sacrifices its strong positive drift and incurs costs. Test a simple, slow time-series momentum overlay: remain invested during persistent strength and go to cash only after sustained weakness, using infrequent weekly decisions to limit turnover.",
+        "rules": "Use completed UTC daily closes only. At 00:00 UTC each Monday, calculate the BTC close-to-close return over the previous 90 complete days. If the return is positive, target 100% of available equity in BTC; if it is zero or negative, target 0% BTC. Submit any required rebalance after the decision and fill at the next one-minute bar open, applying the stated fee and slippage; do not use the decision bar's future data. Hold the target until the next Monday. Spot only, no borrowing, and cap each order at 10% of that fill bar's volume; carry unfilled quantity forward and stop submitting once the target is reached."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 1.0337427481299999,
+        "sharpe": 1.1075147782856498,
+        "max_drawdown": 0.2985401921243407,
+        "trades": 24,
+        "fees": 156.777643
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.11751533584200002,
+          "sharpe": 0.5195274469896723,
+          "max_drawdown": 0.2985401921243407,
+          "trades": 13,
+          "fees": 60.50399758
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 0.8197723139734374,
+          "sharpe": 1.5303095588648228,
+          "max_drawdown": 0.27682139568336434,
+          "trades": 11,
+          "fees": 96.27364542000001
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The strategy fails the required benchmark comparison and lacks convincing performance across both halves; its limited fills and execution-sizing mismatch further weaken the evidence. Reject before committing real money.",
+        "concerns": [
+          "The overlay substantially underperforms buy-and-hold: +103.4% versus +462.7%, with a lower Sharpe (1.11 vs. 2.02). Its modestly smaller drawdown does not compensate for the much lower return.",
+          "Performance is weak in the first half (+11.8%, Sharpe 0.52) and concentrated in the second half (+82.0%), so it does not demonstrate acceptable consistency across both halves.",
+          "There are only 24 fills, too few to establish a reliable edge, and the provided results are training data only.",
+          "The code sizes and checks orders using the current bar's close even though orders fill at the next bar's open; this creates a sizing/execution mismatch and the reported results do not establish realistic next-open performance under fees, slippage, latency, and volume caps."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.03423202623166377,
+        "sharpe": 0.3700027899922209,
+        "max_drawdown": 0.28235070110461,
+        "trades": 3,
+        "fees": 19.35234533
+      },
+      "cost_usd": 0.00169863
+    },
+    {
+      "id": "s028",
+      "idea": {
+        "name": "Small Cash Reserve",
+        "hypothesis": "Test whether BTC’s strong positive drift is better captured by keeping nearly all capital invested while using a small, infrequent protective cash reserve during unusually weak market conditions. This is a deliberately conservative exposure-sizing experiment, not a claim that another entry/exit signal can beat buy-and-hold; judge it by whether it materially reduces drawdown without sacrificing much return after costs.",
+        "rules": "At each UTC month boundary, using only completed bars through the prior month-end, compute BTC’s close-to-close return over the prior 90 calendar days. Hold 90% of equity in BTC and 10% in USDT when that return is positive; hold 80% in BTC and 20% in USDT when it is zero or negative. Rebalance only at the first bar of the new month: submit the required spot buy or sell for the target BTC weight, filled at the next bar’s open with the stated fee, slippage, and volume cap. Never short or borrow; retain any unfilled quantity and retry no more than once per day until filled. Use the same rule throughout the sample, report results by half and against buy-and-hold, and reject it unless the modest risk reduction compensates for any return shortfall."
+      },
+      "status": "rejected",
+      "builds": 2,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": 2.0456255012530002,
+        "sharpe": 1.5271713309763137,
+        "max_drawdown": 0.3312340972596597,
+        "trades": 3,
+        "fees": 9.98993577
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": 0.3761303909529998,
+          "sharpe": 1.3062985085072951,
+          "max_drawdown": 0.21609002688200446,
+          "trades": 3,
+          "fees": 9.989935769999999
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": 1.2130510970492443,
+          "sharpe": 1.7562951598794643,
+          "max_drawdown": 0.3312340972596597,
+          "trades": 0,
+          "fees": 1.7763568394002505e-15
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The strategy fails the required comparison with buy-and-hold: it earns far less while showing the same maximum drawdown. Its three fills are also insufficient to substantiate the claimed risk benefit.",
+        "concerns": [
+          "It substantially underperforms buy-and-hold: +204.6% versus +462.7% over the period, with a lower Sharpe (1.53 versus 2.02).",
+          "It shows no drawdown benefit: both the strategy and buy-and-hold have a -33.1% maximum drawdown.",
+          "Only three fills occurred, including none in the second half. That is too little trading evidence to establish the proposed protective effect, and the second-half result is not evidence of active risk control.",
+          "Although returns are positive in both halves, that alone does not offset the much weaker return without any observed reduction in maximum drawdown."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": 0.028229646381000117,
+        "sharpe": 0.3462017837193004,
+        "max_drawdown": 0.31670609635707814,
+        "trades": 2,
+        "fees": 9.98949219
+      },
+      "cost_usd": 0.00307476
+    },
+    {
+      "id": "s029",
+      "idea": {
+        "name": "Weekend Reopening Reversal",
+        "hypothesis": "Most timing rules have paid a large opportunity cost against BTC’s positive drift. A distinct remaining test is the overnight/weekend funding-and-inventory mechanism: crypto-native trading continues while some traditional risk desks are less active, so weekend price moves may be unusually prone to reversal when weekday liquidity returns. This is speculative and should be rejected unless it beats buy-and-hold net of costs in both halves and out of sample.",
+        "rules": "Use UTC timestamps and only completed bars. At 00:00 UTC each Monday, compare the BTC close with the close at 00:00 UTC Saturday (the preceding 48-hour weekend return). If the return is below -3%, buy at the next bar’s open and hold until 00:00 UTC Wednesday, then sell at the next bar’s open. Otherwise remain flat. Never pyramid; risk at most 25% of current equity per trade, capped by available cash and the 10%-of-bar-volume fill limit. Apply the specified fees and slippage to every fill; do not enter if the order cannot be filled within the execution constraints. No overlapping trades."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": -0.009839221642999996,
+        "sharpe": -0.27881224880673616,
+        "max_drawdown": 0.046590584117296295,
+        "trades": 8,
+        "fees": 19.63102713
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": -0.007596702840999892,
+          "sharpe": -1.0911625343050548,
+          "max_drawdown": 0.011615140994172279,
+          "trades": 2,
+          "fees": 4.9000761100000005
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": -0.0022596849571336897,
+          "sharpe": -0.08526427666122442,
+          "max_drawdown": 0.03826817349655717,
+          "trades": 6,
+          "fees": 14.73095102
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The reported results fail the profitability, both-halves, trade-count, and buy-and-hold criteria; the weekday indexing also raises a material implementation-correctness concern. Reject before committing capital.",
+        "concerns": [
+          "The strategy loses money after costs: -1.0% overall, with negative returns in both halves.",
+          "It substantially underperforms buy-and-hold (+462.7%); its lower drawdown does not compensate for the near-zero return relative to BTC’s gain.",
+          "Only 8 fills across two years—and just 2 in the first half—are too few to establish a reliable edge.",
+          "Results are training-only; there is no out-of-sample evidence.",
+          "The code’s weekday calculation assumes Unix epoch day zero is Thursday, but `day_of_week = (now / day_ns) % 7` does not account for that offset. Its Monday/Wednesday checks therefore appear misaligned with UTC weekdays, so the implementation may not test the stated schedule."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": -0.001585418572000008,
+        "sharpe": -0.08789110748487128,
+        "max_drawdown": 0.02493929795924035,
+        "trades": 6,
+        "fees": 14.93546572
+      },
+      "cost_usd": 0.00178563
+    },
+    {
+      "id": "s030",
+      "idea": {
+        "name": "UTC Overnight Drift",
+        "hypothesis": "Rather than repeatedly timing BTC’s long-run drift, test whether exposure should be concentrated in a specific recurring UTC window: a persistent positive return premium during the quiet 00:00–06:00 UTC interval could reflect overnight spot demand not immediately arbitraged away. This is a narrow seasonality hypothesis, not an established edge; its main risk is that a small gross premium will be erased by round-trip costs and missed gains outside the window.",
+        "rules": "Use UTC timestamps. Hold BTC only from 00:00 through 06:00 UTC each day. At the first bar open at or after 00:00, buy with all available USDT; at the first bar open at or after 06:00, sell all BTC. Generate orders from the prior bar’s timestamp and fill only at the next bar’s open, applying the stated fees, slippage, latency, and volume cap. Do not use future bars or optimize the window on this sample. Evaluate net performance against buy-and-hold, including both half-periods and a genuinely untouched out-of-sample period; reject unless the window’s net return premium is robust after costs."
+      },
+      "status": "rejected",
+      "builds": 1,
+      "error": null,
+      "in_sample": {
+        "from": "2023-01-01",
+        "to": "2024-12-31",
+        "total_return": -0.782697908995,
+        "sharpe": -3.5704985403804184,
+        "max_drawdown": 0.8077262045022792,
+        "trades": 1465,
+        "fees": 7597.86378395
+      },
+      "halves": [
+        {
+          "from": "2023-01-01",
+          "to": "2023-12-31",
+          "total_return": -0.529545021299,
+          "sharpe": -4.329374922108941,
+          "max_drawdown": 0.5571484762250349,
+          "trades": 733,
+          "fees": 5372.065889090007
+        },
+        {
+          "from": "2024-01-01",
+          "to": "2024-12-31",
+          "total_return": -0.5381022609113306,
+          "sharpe": -3.1079223276222354,
+          "max_drawdown": 0.580900452014159,
+          "trades": 732,
+          "fees": 2225.797894859993
+        }
+      ],
+      "critique": {
+        "verdict": "reject",
+        "reason": "The reported results fail profitability, both-half performance, and buy-and-hold comparison by a wide margin. The code’s apparent timing mismatch also means the backtest may not evaluate the stated strategy, but that does not provide grounds to pass it.",
+        "concerns": [
+          "The strategy loses 78.3% after costs and has a -80.8% maximum drawdown.",
+          "It loses heavily in both halves: -53.0% in 2023 and -53.8% in 2024, so performance is not confined to one unusual stretch.",
+          "It decisively underperforms buy-and-hold, which returned +462.7% with a much smaller maximum drawdown.",
+          "The 1,465 fills incur substantial fees; more trades do not rescue the negative result.",
+          "The supplied code appears inconsistent with the stated schedule: it buys whenever flat before 06:00, potentially immediately after a sale at or after 06:00, rather than waiting until the next 00:00 window."
+        ]
+      },
+      "out_of_sample": {
+        "from": "2025-01-01",
+        "to": "2025-06-30",
+        "total_return": -0.35577521617313324,
+        "sharpe": -4.505050322827201,
+        "max_drawdown": 0.37479325571107636,
+        "trades": 365,
+        "fees": 2642.812206989999
+      },
+      "cost_usd": 0.00180113
+    }
+  ],
+  "funnel": {
+    "proposed": 30,
+    "compiled": 30,
+    "ran": 30,
+    "passed_critic": 0,
+    "beat_buy_hold": 0
+  },
+  "buy_hold_in_sample": {
+    "from": "2023-01-01",
+    "to": "2024-12-31",
+    "total_return": 4.62733233281,
+    "sharpe": 2.01518821602433,
+    "max_drawdown": 0.3308754667688791,
+    "trades": 1,
+    "fees": 9.9418744
+  },
+  "buy_hold_out_of_sample": {
+    "from": "2025-01-01",
+    "to": "2025-06-30",
+    "total_return": 0.1425276473899999,
+    "sharpe": 0.8079325666825334,
+    "max_drawdown": 0.3154034526277709,
+    "trades": 1,
+    "fees": 9.9415973
+  },
+  "deflated": {
+    "best": "s017",
+    "best_in_sample_sharpe": 2.01518821602433,
+    "trials": 26,
+    "luck_threshold_sharpe": 3.0949802921686578,
+    "probability": 0.05837936479879409
+  },
+  "spent_usd": 0.06313357,
+  "budget_usd": 10.0,
+  "stopped": "finished all 30 attempts"
+}

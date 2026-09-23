@@ -38,6 +38,10 @@ pub struct LabArgs {
     pub test_from: String,
     #[arg(long, default_value = "2025-06")]
     pub test_to: String,
+    /// Months before the test period that strategies see first, so their
+    /// indicators are ready; they don't count towards the test results.
+    #[arg(long, default_value_t = 4)]
+    pub warmup_months: usize,
     #[arg(long, default_value = "10000")]
     cash: Money,
     /// Where to write the run. Defaults to results/lab/<timestamp>.
@@ -91,7 +95,126 @@ fn run_id() -> String {
     )
 }
 
-pub fn lab(data_dir: &Path, args: LabArgs, train: Vec<Period>, test: Vec<Period>) -> Result<()> {
+#[derive(Args)]
+pub struct EvaluateArgs {
+    /// A finished run directory, e.g. results/lab/pilot-1.
+    #[arg(long)]
+    run: PathBuf,
+    #[arg(long, default_value = "BTCUSDT")]
+    symbol: String,
+    #[arg(long, default_value = "2023-01")]
+    pub train_from: String,
+    #[arg(long, default_value = "2024-12")]
+    pub train_to: String,
+    #[arg(long, default_value = "2025-01")]
+    pub test_from: String,
+    #[arg(long, default_value = "2025-06")]
+    pub test_to: String,
+    #[arg(long, default_value_t = 4)]
+    pub warmup_months: usize,
+    #[arg(long, default_value = "10000")]
+    cash: Money,
+    /// Where to write the new report. Defaults to
+    /// <run>/eval-<test-from>-<test-to>.
+    #[arg(long)]
+    out: Option<PathBuf>,
+}
+
+fn print_summary(report: &tape_lab::Report, out: &Path) {
+    let f = &report.funnel;
+    println!();
+    println!("{}", report.stopped);
+    println!(
+        "funnel: {} proposed, {} compiled, {} ran, {} passed the critic, {} beat buy-and-hold out of sample",
+        f.proposed, f.compiled, f.ran, f.passed_critic, f.beat_buy_hold
+    );
+    let sharpe = |s: Option<f64>| s.map_or("n/a".into(), |s| format!("{s:.2}"));
+    println!(
+        "buy and hold: Sharpe {} in sample, {} out of sample",
+        sharpe(report.buy_hold_in_sample.sharpe),
+        sharpe(report.buy_hold_out_of_sample.sharpe)
+    );
+    if let Some(d) = &report.deflated {
+        println!(
+            "best in sample: {} (Sharpe {:.2}); luck alone over {} tries would reach about {:.2}; \
+             deflated Sharpe probability {}",
+            d.best,
+            d.best_in_sample_sharpe,
+            d.trials,
+            d.luck_threshold_sharpe,
+            d.probability
+                .map_or("n/a".into(), |p| format!("{:.1}%", p * 100.0))
+        );
+    }
+    println!(
+        "spent ${:.4} of ${:.2}",
+        report.spent_usd, report.budget_usd
+    );
+    println!("report: {}", out.join("experiment.json").display());
+}
+
+fn market(
+    data_dir: &Path,
+    symbol: &str,
+    train: &[Period],
+    test: &[Period],
+    warmup: &[Period],
+) -> Result<Market> {
+    eprintln!(
+        "loading {} training months, {} warm-up months and {} test months",
+        train.len(),
+        warmup.len(),
+        test.len()
+    );
+    Ok(Market {
+        instrument: instrument(symbol)?,
+        train: tape_lab::Period {
+            from: label(train, false),
+            to: label(train, true),
+            events: events(data_dir, symbol, train)?,
+        },
+        test: tape_lab::Period {
+            from: label(test, false),
+            to: label(test, true),
+            events: events(data_dir, symbol, test)?,
+        },
+        warmup: events(data_dir, symbol, warmup)?,
+    })
+}
+
+pub fn evaluate(
+    data_dir: &Path,
+    args: EvaluateArgs,
+    train: Vec<Period>,
+    test: Vec<Period>,
+    warmup: Vec<Period>,
+) -> Result<()> {
+    let market = market(data_dir, &args.symbol, &train, &test, &warmup)?;
+    let out = args.out.unwrap_or_else(|| {
+        args.run
+            .join(format!("eval-{}-{}", args.test_from, args.test_to))
+    });
+    let config = LabConfig {
+        attempts: 0,
+        max_repairs: 0,
+        initial_cash: args.cash,
+        execution: ExecutionModel::realistic(),
+        limits: Limits::default(),
+        out_dir: out.clone(),
+    };
+    let report =
+        tape_lab::lab::evaluate(&config, &market, &args.run, &mut |line| eprintln!("{line}"))?;
+    print_summary(&report, &out);
+    Ok(())
+}
+
+pub fn lab(
+    data_dir: &Path,
+    args: LabArgs,
+    train: Vec<Period>,
+    test: Vec<Period>,
+    warmup: Vec<Period>,
+) -> Result<()> {
     if args.budget <= 0.0 {
         bail!("--budget must be positive");
     }
@@ -99,25 +222,7 @@ pub fn lab(data_dir: &Path, args: LabArgs, train: Vec<Period>, test: Vec<Period>
     if !root.join("crates/tape-guest").exists() {
         bail!("run `tape lab` from the root of the tape repository");
     }
-    let instrument = instrument(&args.symbol)?;
-    eprintln!(
-        "loading {} training months and {} test months",
-        train.len(),
-        test.len()
-    );
-    let market = Market {
-        instrument,
-        train: tape_lab::Period {
-            from: label(&train, false),
-            to: label(&train, true),
-            events: events(data_dir, &args.symbol, &train)?,
-        },
-        test: tape_lab::Period {
-            from: label(&test, false),
-            to: label(&test, true),
-            events: events(data_dir, &args.symbol, &test)?,
-        },
-    };
+    let market = market(data_dir, &args.symbol, &train, &test, &warmup)?;
 
     let model: Box<dyn Model> = if args.dry_run {
         let code = include_str!("../../../guests/sma-cross/src/lib.rs");
@@ -173,35 +278,6 @@ pub fn lab(data_dir: &Path, args: LabArgs, train: Vec<Period>, test: Vec<Period>
         },
     )?;
 
-    let f = &report.funnel;
-    println!();
-    println!("{}", report.stopped);
-    println!(
-        "funnel: {} proposed, {} compiled, {} ran, {} passed the critic, {} beat buy-and-hold out of sample",
-        f.proposed, f.compiled, f.ran, f.passed_critic, f.beat_buy_hold
-    );
-    let sharpe = |s: Option<f64>| s.map_or("n/a".into(), |s| format!("{s:.2}"));
-    println!(
-        "buy and hold: Sharpe {} in sample, {} out of sample",
-        sharpe(report.buy_hold_in_sample.sharpe),
-        sharpe(report.buy_hold_out_of_sample.sharpe)
-    );
-    if let Some(d) = &report.deflated {
-        println!(
-            "best in sample: {} (Sharpe {:.2}); luck alone over {} tries would reach about {:.2}; \
-             deflated Sharpe probability {}",
-            d.best,
-            d.best_in_sample_sharpe,
-            d.trials,
-            d.luck_threshold_sharpe,
-            d.probability
-                .map_or("n/a".into(), |p| format!("{:.1}%", p * 100.0))
-        );
-    }
-    println!(
-        "spent ${:.4} of ${:.2}",
-        report.spent_usd, report.budget_usd
-    );
-    println!("report: {}", out.join("experiment.json").display());
+    print_summary(&report, &out);
     Ok(())
 }

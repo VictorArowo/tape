@@ -45,6 +45,24 @@ enum LabCommand {
     /// Run an experiment: ideas, code, backtests and critiques on the
     /// training period, then one look at the held-out test period.
     Run(lab::LabArgs),
+    /// Re-score a finished run from its saved strategies, without calling
+    /// the model: for example on a different test period.
+    Evaluate(lab::EvaluateArgs),
+}
+
+/// The `count` months immediately before `first`.
+fn months_before(first: &str, count: usize) -> Result<Vec<Period>> {
+    let (mut year, mut month) = parse_month(first)?;
+    let mut out = Vec::new();
+    for _ in 0..count {
+        (year, month) = if month == 1 {
+            (year - 1, 12)
+        } else {
+            (year, month - 1)
+        };
+        out.insert(0, Period::Month { year, month });
+    }
+    Ok(out)
 }
 
 #[derive(Subcommand)]
@@ -161,7 +179,17 @@ fn main() -> Result<()> {
             };
             let train = span(&args.train_from, &args.train_to)?;
             let test = span(&args.test_from, &args.test_to)?;
-            lab::lab(&cli.data_dir, args, train, test)
+            let warmup = months_before(&args.test_from, args.warmup_months)?;
+            lab::lab(&cli.data_dir, args, train, test, warmup)
+        }
+        Command::Lab(LabCommand::Evaluate(args)) => {
+            let span = |from: &str, to: &str| -> Result<Vec<Period>> {
+                months(parse_month(from)?, parse_month(to)?)
+            };
+            let train = span(&args.train_from, &args.train_to)?;
+            let test = span(&args.test_from, &args.test_to)?;
+            let warmup = months_before(&args.test_from, args.warmup_months)?;
+            lab::evaluate(&cli.data_dir, args, train, test, warmup)
         }
         Command::Compare(args) => {
             let from = parse_month(&args.from)?;
