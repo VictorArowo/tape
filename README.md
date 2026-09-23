@@ -22,8 +22,8 @@ Early. Research and paper trading only.
 | M2 Engine, execution model, portfolio, metrics, CLI | done |
 | M3 Honest vs naive backtest comparison | done |
 | M4 WebAssembly strategy sandbox | done |
-| M5 Agent research desk | built; pilot run pending |
-| M6 Web demo and write-up | |
+| M5 Agent research desk | done: 200 attempts, results/lab/full-1 |
+| M6 Web demo and write-up | in-browser engine done; write-up pending |
 
 ## Layout
 
@@ -37,7 +37,10 @@ crates/
   tape-guest       SDK for strategies compiled to WebAssembly
   tape-wasm        the sandbox that runs them: capability, compute and memory limits
   tape-lab         the AI research desk: propose, write, backtest, critique, then one held-out test
+  tape-web         the engine compiled to WebAssembly for the browser demo
   tape-cli         the `tape` command
+web/
+  tape-engine.js   loader for the browser build; build.sh writes web/dist, test.mjs checks it against native
 guests/
   sma-cross        the reference crossover, compiled for the sandbox
 ```

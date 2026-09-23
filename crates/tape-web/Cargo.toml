@@ -1,0 +1,21 @@
+[package]
+name = "tape-web"
+description = "tape compiled to WebAssembly for the in-browser demo"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+tape-core = { version = "0.1.0", path = "../tape-core" }
+tape-engine = { version = "0.1.0", path = "../tape-engine" }
+tape-strategies = { version = "0.1.0", path = "../tape-strategies" }
+
+[lints]
+workspace = true

@@ -1,0 +1,23 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>tape engine check</title>
+<pre id="out">loading…</pre>
+<script type="module">
+  import { createEngine } from "./tape-engine.js";
+  const out = document.getElementById("out");
+  const lines = [];
+  try {
+    const engine = await createEngine({ base: "./" });
+    const execution = { latencyMs: 100, feeBps: 10, slippageBps: 2, participationPct: 10, fillOnTouch: false };
+    for (const [strategy, extra] of [["sma", { fast: 20, slow: 100 }], ["meanrev", { window: 60, band: 2 }], ["breakout", { lookback: 240 }], ["hold", {}]]) {
+      const r = await engine.run({ strategy, ...extra, month: "2024-01", execution });
+      lines.push(`${strategy.padEnd(9)} return ${(r.stats.totalReturn * 100).toFixed(2)}%  naive ${(r.stats.naiveReturn * 100).toFixed(2)}%  trades ${r.stats.trades}  points ${r.equity.length}  ${r.elapsedMs.toFixed(0)} ms  ${r.runHash}`);
+    }
+    const r = await engine.run({ strategy: "sma", fast: 20, slow: 100, month: "2024-07", execution });
+    lines.push(`second month loaded: ${r.dates[0]} → ${r.dates.at(-1)}`);
+    lines.push("OK");
+  } catch (err) {
+    lines.push("ERROR " + err.message);
+  }
+  out.textContent = lines.join("\n");
+</script>

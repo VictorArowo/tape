@@ -1,6 +1,7 @@
 mod compare;
 mod lab;
 mod run;
+mod web;
 
 use std::path::PathBuf;
 
@@ -38,6 +39,17 @@ enum Command {
     /// AI agents that propose, write and test strategies.
     #[command(subcommand)]
     Lab(LabCommand),
+    /// Data and checks for the in-browser demo.
+    #[command(subcommand)]
+    Web(WebCommand),
+}
+
+#[derive(Subcommand)]
+enum WebCommand {
+    /// Write month files for the browser engine.
+    Export(web::ExportArgs),
+    /// Run the browser engine's code natively, for comparing results.
+    Run(web::WebRunArgs),
 }
 
 #[derive(Subcommand)]
@@ -191,6 +203,17 @@ fn main() -> Result<()> {
             let warmup = months_before(&args.test_from, args.warmup_months)?;
             lab::evaluate(&cli.data_dir, args, train, test, warmup)
         }
+        Command::Web(WebCommand::Export(args)) => {
+            let from = parse_month(&args.from)?;
+            let to = args
+                .to
+                .as_deref()
+                .map(parse_month)
+                .transpose()?
+                .unwrap_or(from);
+            web::export(&cli.data_dir, args, months(from, to)?)
+        }
+        Command::Web(WebCommand::Run(args)) => web::run(args),
         Command::Compare(args) => {
             let from = parse_month(&args.from)?;
             let to = args
