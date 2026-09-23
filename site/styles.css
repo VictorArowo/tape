@@ -263,8 +263,6 @@ h2 { font-size: clamp(2.25rem, 5.5vw, 3.75rem); max-width: 18ch; }
 
 @media (max-width: 860px) {
   .masthead nav { display: none; }
-  .funnel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .lie { grid-template-columns: 1fr; gap: 0.5rem; }
   .timeline {
     grid-template-columns: 1fr;
@@ -346,12 +344,13 @@ h3.chart-title {
 .chart-ref-label { fill: var(--muted); font: 12px var(--sans); paint-order: stroke; stroke: var(--ink); stroke-width: 4px; stroke-linejoin: round; }
 .chart-hit { fill: transparent; }
 .chart-point { cursor: default; outline: none; }
-.chart-point:focus-visible .chart-dot { stroke: var(--mark); }
+.chart-point:focus-visible .chart-dot, .chart-point:focus-visible .chart-ring { stroke: var(--mark); }
 .chart-legend { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-bottom: 1rem; font-size: 0.9375rem; color: var(--muted); }
 .chart-legend li { display: flex; align-items: center; gap: 0.5rem; }
 .chart-legend-key { display: inline-block; }
 .chart-legend-key.line { width: 18px; height: 2px; border-radius: 1px; }
 .chart-legend-key.dot { width: 10px; height: 10px; border-radius: 50%; }
+.chart-legend-key.dot.hollow { background: transparent; border: 1.5px solid; box-sizing: border-box; }
 .chart-tip {
   position: absolute;
   z-index: 5;
@@ -433,7 +432,10 @@ h3.chart-title {
 .tile-note { font-size: 0.8125rem; color: var(--muted); }
 
 /* Experiment */
-.funnel { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem; margin-top: 3rem; }
+.funnel { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+.luck-figures { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; margin-top: 1.5rem; max-width: 52rem; }
+.luck-figures .figure:last-child .figure-value { color: var(--text); }
+.run-meta { margin-top: 1rem; color: var(--muted); font-size: 0.9375rem; }
 .figure { display: flex; flex-direction: column; gap: 0.35rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
 .figure-value { font-size: clamp(2.25rem, 5vw, 3.25rem); font-weight: 700; font-variation-settings: "wdth" 75; line-height: 1; }
 .figure:last-child .figure-value { color: var(--mark); }
@@ -453,4 +455,16 @@ h3.chart-title {
   .field select, .field input, .field input[type="number"] { width: 100%; }
   .tile-value { font-size: 1.4rem; }
   .funnel { gap: 1.25rem; }
+}
+
+/* Responsive overrides for components defined above. Keep these last. */
+@media (max-width: 960px) {
+  .funnel { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .luck-figures { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .funnel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

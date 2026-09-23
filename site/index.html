@@ -257,19 +257,32 @@
 
         <div class="funnel">
           <div class="figure"><span class="figure-value" data-bind="funnel.proposed"></span><span class="figure-label">ideas proposed</span></div>
-          <div class="figure"><span class="figure-value" data-bind="funnel.compiled"></span><span class="figure-label">compiled and ran</span></div>
+          <div class="figure"><span class="figure-value" data-bind="funnel.compiled"></span><span class="figure-label">compiled</span></div>
+          <div class="figure"><span class="figure-value" data-bind="funnel.ran"></span><span class="figure-label">ran without crashing</span></div>
           <div class="figure"><span class="figure-value" data-bind="funnel.passedCritic"></span><span class="figure-label">passed the critic</span></div>
           <div class="figure"><span class="figure-value" data-bind="funnel.beatBuyHold"></span><span class="figure-label">beat buy-and-hold on unseen data</span></div>
         </div>
 
         <h3 class="chart-title">Training results versus the final exam</h3>
-        <p class="chart-sub">Each dot is a strategy that passed the critic. If backtests told the truth, dots would sit on the diagonal.</p>
+        <p class="chart-sub" data-bind="scatterSub">Each dot is a strategy. If backtests told the truth, dots would sit on the diagonal.</p>
         <div class="chart-host" id="experiment-chart"></div>
+
+        <div class="luck" data-luck hidden>
+          <h3 class="chart-title">Was the best one just lucky?</h3>
+          <p class="chart-sub">Try enough random ideas and one of them will look brilliant in training. This checks the best strategy against what luck alone would produce.</p>
+          <div class="luck-figures">
+            <div class="figure"><span class="figure-value" data-bind="luck.best"></span><span class="figure-label" data-bind="luck.bestLabel">best Sharpe ratio in training</span></div>
+            <div class="figure"><span class="figure-value" data-bind="luck.threshold"></span><span class="figure-label" data-bind="luck.thresholdLabel">what luck alone would reach</span></div>
+            <div class="figure"><span class="figure-value" data-bind="luck.probability"></span><span class="figure-label">chance the edge is real</span></div>
+          </div>
+          <p class="note" data-bind="luck.note"></p>
+        </div>
 
         <h3 class="chart-title">From the lab notebook</h3>
         <ul class="notebook" data-bind-list="examples"></ul>
 
-        <p>Every attempt was counted, because trying hundreds of ideas and keeping the best one is its own kind of cheating. The survivors' scores are adjusted for how many ideas were tried.</p>
+        <p>Every attempt was counted, because trying hundreds of ideas and keeping the best one is its own kind of cheating.</p>
+        <p class="run-meta" data-bind="runMeta"></p>
       </div>
     </section>
 

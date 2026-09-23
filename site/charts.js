@@ -68,8 +68,9 @@ function legend(host, series, shape) {
   for (const s of series) {
     const li = document.createElement("li");
     const key = document.createElement("span");
-    key.className = `chart-legend-key ${shape}`;
-    key.style.background = s.color;
+    key.className = `chart-legend-key ${shape}${s.hollow ? " hollow" : ""}`;
+    if (s.hollow) key.style.borderColor = s.color;
+    else key.style.background = s.color;
     const label = document.createElement("span");
     label.textContent = s.label;
     li.append(key, label);
@@ -198,6 +199,9 @@ export function scatterChart(host, { points, groups, xLabel, yLabel, format, dia
   const [xMin, xMax] = [xTicks[0], xTicks.at(-1)];
   const [yMin, yMax] = [yTicks[0], yTicks.at(-1)];
   const colorOf = Object.fromEntries(groups.map((g) => [g.key, g.color]));
+  const hollow = new Set(groups.filter((g) => g.hollow).map((g) => g.key));
+  // De-emphasized (hollow) points draw first, underneath the rest.
+  const ordered = [...points].sort((a, b) => Number(hollow.has(b.group)) - Number(hollow.has(a.group)));
 
   function draw() {
     plot.querySelector("svg")?.remove();
@@ -232,7 +236,8 @@ export function scatterChart(host, { points, groups, xLabel, yLabel, format, dia
       const lo = Math.max(xMin, yMin);
       const hi = Math.min(xMax, yMax);
       el("line", { x1: sx(lo), y1: sy(lo), x2: sx(hi), y2: sy(hi), class: "chart-ref", "clip-path": `url(#${clipId})` }, svg);
-      el("text", { x: sx(hi) + 6, y: sy(hi) + 4, class: "chart-ref-label" }, svg).textContent = diagonal;
+      const label = wide ? { x: sx(hi) + 6, y: sy(hi) + 4 } : { x: sx(hi) - 6, y: sy(hi) + 16, "text-anchor": "end" };
+      el("text", { ...label, class: "chart-ref-label" }, svg).textContent = diagonal;
     }
     if (hline) {
       el("line", { x1: m.left, x2: m.left + w, y1: sy(hline.value), y2: sy(hline.value), class: "chart-ref" }, svg);
@@ -242,10 +247,14 @@ export function scatterChart(host, { points, groups, xLabel, yLabel, format, dia
       el("text", { ...label, class: "chart-ref-label" }, svg).textContent = hline.label;
     }
 
-    for (const p of points) {
+    for (const p of ordered) {
       const g = el("g", { class: "chart-point", tabindex: 0, role: "img", "aria-label": `${p.label}: ${xLabel} ${format(p.x)}, ${yLabel} ${format(p.y)}` }, svg);
       el("circle", { cx: sx(p.x), cy: sy(p.y), r: 12, class: "chart-hit" }, g);
-      el("circle", { cx: sx(p.x), cy: sy(p.y), r: 5, fill: colorOf[p.group], class: "chart-dot" }, g);
+      if (hollow.has(p.group)) {
+        el("circle", { cx: sx(p.x), cy: sy(p.y), r: 4.5, fill: "none", stroke: colorOf[p.group], "stroke-width": 1.5, class: "chart-ring" }, g);
+      } else {
+        el("circle", { cx: sx(p.x), cy: sy(p.y), r: 5, fill: colorOf[p.group], class: "chart-dot" }, g);
+      }
       const show = () =>
         tip.show(sx(p.x), sy(p.y), p.label, [
           { label: xLabel, value: format(p.x), color: colorOf[p.group] },

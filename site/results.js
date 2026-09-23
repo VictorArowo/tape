@@ -134,46 +134,85 @@ function ladder(section, data) {
   bind(container, { ladderNote: note });
 }
 
+// The deflated Sharpe probability is the verdict; the thresholds explain it.
+function luckNote(ds) {
+  const tries = `${fmt.count(ds.trials)} tries`;
+  if (ds.probability == null) return "";
+  if (ds.probability >= 0.95) return `Even after ${tries}, the best strategy's edge is unlikely to be luck. The final exam is the real test.`;
+  if (ds.probability >= 0.5) return `The best strategy did better than luck would predict after ${tries}, but not by a convincing margin.`;
+  return `After ${tries}, the best strategy's training result is about what luck alone would produce.`;
+}
+
 async function experiment() {
   const section = document.querySelector('[data-result="experiment"]');
   const data = await load("experiment");
   flag(section, data.placeholder);
 
   const range = (r) => `${fmt.date(r.from)} to ${fmt.date(r.to)}`;
-  bind(section, {
+  const f = data.funnel;
+  const values = {
     train: range(data.train),
     test: range(data.test),
-    "funnel.proposed": fmt.count(data.funnel.proposed),
-    "funnel.compiled": fmt.count(data.funnel.compiled),
-    "funnel.passedCritic": fmt.count(data.funnel.passedCritic),
-    "funnel.beatBuyHold": fmt.count(data.funnel.beatBuyHold),
-  });
+    "funnel.proposed": fmt.count(f.proposed),
+    "funnel.compiled": fmt.count(f.compiled),
+    "funnel.ran": fmt.count(f.ran ?? f.compiled),
+    "funnel.passedCritic": fmt.count(f.passedCritic),
+    "funnel.beatBuyHold": fmt.count(f.beatBuyHold),
+  };
 
+  // Plot everything that ran if we have it; the critic may pass very little.
   const bh = data.buyHoldOutOfSampleSharpe;
+  const pool = data.allStrategies ?? data.strategies.map((s) => ({ ...s, status: "passed" }));
+  const plottable = pool.filter((s) => s.inSampleSharpe != null && s.outOfSampleSharpe != null);
+  const unplotted = pool.filter((s) => s.status !== "runtime_failed").length - plottable.length;
+  const groupOf = (s) => (s.status !== "passed" ? "rejected" : s.outOfSampleSharpe > bh ? "beat" : "lost");
+  const groups = [
+    { key: "beat", label: "Passed, and beat buy-and-hold on unseen data", color: colors.tape },
+    { key: "lost", label: "Passed, but didn't", color: colors.naive },
+    { key: "rejected", label: "Rejected by the critic", color: colors.rejected, hollow: true },
+  ].filter((g) => plottable.some((s) => groupOf(s) === g.key));
+
+  values.scatterSub =
+    `Each dot is one of ${fmt.count(plottable.length)} strategies that ran. If backtests told the truth, dots would sit on the diagonal.` +
+    (unplotted > 0 ? ` ${fmt.count(unplotted)} with no Sharpe ratio (a flat equity curve) aren't shown.` : "");
+
   const host = section.querySelector("#experiment-chart");
   scatterChart(host, {
-    points: data.strategies.map((s) => ({
-      x: s.inSampleSharpe,
-      y: s.outOfSampleSharpe,
-      label: s.name,
-      group: s.outOfSampleSharpe > bh ? "beat" : "lost",
-    })),
-    groups: [
-      { key: "beat", label: "Beat buy-and-hold on unseen data", color: colors.tape },
-      { key: "lost", label: "Didn't", color: colors.naive },
-    ],
+    points: plottable.map((s) => ({ x: s.inSampleSharpe, y: s.outOfSampleSharpe, label: s.name, group: groupOf(s) })),
+    groups,
     xLabel: "Sharpe ratio in training",
     yLabel: "Sharpe ratio in the final exam",
     format: fmt.ratio,
     diagonal: "Backtest told the truth",
     hline: { value: bh, label: "Buy-and-hold" },
-    ariaLabel: `Scatter plot of ${data.strategies.length} strategies. ${data.funnel.beatBuyHold} beat buy-and-hold on unseen data.`,
+    ariaLabel: `Scatter plot of ${plottable.length} strategies. ${f.beatBuyHold} passed the critic and beat buy-and-hold on unseen data.`,
   });
+  const statusLabel = { passed: "Passed", rejected: "Rejected", runtime_failed: "Crashed" };
   tableView(host, {
     summary: "Show every strategy as a table",
-    columns: ["Strategy", "Sharpe in training", "Sharpe in final exam"],
-    rows: data.strategies.map((s) => [s.name, fmt.ratio(s.inSampleSharpe), fmt.ratio(s.outOfSampleSharpe)]),
+    columns: ["Strategy", "Critic", "Sharpe in training", "Sharpe in final exam"],
+    rows: pool.map((s) => [s.name, statusLabel[s.status] ?? "", fmt.ratio(s.inSampleSharpe), fmt.ratio(s.outOfSampleSharpe)]),
   });
+
+  const ds = data.deflatedSharpe;
+  if (ds) {
+    section.querySelector("[data-luck]").hidden = false;
+    Object.assign(values, {
+      "luck.best": fmt.ratio(ds.bestInSampleSharpe),
+      "luck.bestLabel": `best Sharpe ratio in training (${ds.best})`,
+      "luck.threshold": fmt.ratio(ds.luckThresholdSharpe),
+      "luck.thresholdLabel": `the best of ${fmt.count(ds.trials)} skill-less tries, by luck alone`,
+      "luck.probability": ds.probability == null ? "—" : `${Math.round(ds.probability * 100)}%`,
+      "luck.note": luckNote(ds),
+    });
+  }
+
+  const meta = [];
+  if (data.model) meta.push(`Agents ran on ${data.model}.`);
+  if (data.spentUsd != null) meta.push(`The run cost ${fmt.moneyExact(data.spentUsd)} in API calls.`);
+  if (data.stopped) meta.push(`It stopped because: ${data.stopped.charAt(0).toLowerCase()}${data.stopped.slice(1)}`);
+  values.runMeta = meta.join(" ");
+  bind(section, values);
 
   const list = section.querySelector('[data-bind-list="examples"]');
   list.replaceChildren(

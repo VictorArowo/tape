@@ -14,7 +14,7 @@ export const fmt = {
     if (!signed) return s;
     return v > 0 ? `+${s}` : v < 0 ? `−${s}` : s;
   },
-  ratio: (v) => (v < 0 ? `−${Math.abs(v).toFixed(2)}` : v.toFixed(2)),
+  ratio: (v) => (v == null ? "—" : v < 0 ? `−${Math.abs(v).toFixed(2)}` : v.toFixed(2)),
   date: (iso) => {
     const [y, m, d] = iso.split("-").map(Number);
     return `${d} ${months[m - 1]} ${y}`;
@@ -31,4 +31,6 @@ export const colors = {
   naive: "#6d7be4",
   /** De-emphasized marks: everything that isn't the story. */
   neutral: "#737487",
+  /** Hollow rings for rejected strategies; validated against tape and naive. */
+  rejected: "#a0a0ac",
 };
