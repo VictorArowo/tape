@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>tape: a backtesting engine that doesn't lie</title>
-  <meta name="description" content="tape is a backtesting engine for trading strategies that makes the usual mistakes impossible: no look-ahead, realistic fills, real fees, exact accounting.">
+  <meta name="description" content="tape is a backtesting engine for trading strategies that makes the usual mistakes impossible: no look-ahead, realistic fills, real fees, exact accounting. Run it in your browser.">
   <meta name="theme-color" content="#161b36">
   <meta property="og:title" content="tape: a backtesting engine that doesn't lie">
   <meta property="og:description" content="A strategy only ever sees what has already happened, and every order fills the way a real exchange would fill it.">
@@ -20,9 +20,9 @@
     <a class="wordmark" href="#top" aria-label="tape, back to top">tape</a>
     <nav aria-label="Sections">
       <a href="#lies">How backtests lie</a>
-      <a href="#trade">One trade</a>
+      <a href="#compare">Honest vs naive</a>
+      <a href="#try">Try it</a>
       <a href="#experiment">The experiment</a>
-      <a href="#status">Status</a>
     </nav>
   </header>
 
@@ -31,6 +31,10 @@
       <div class="wrap">
         <h1>Most backtests lie.</h1>
         <p class="lede">tape is a backtesting engine for trading strategies, built to make the usual mistakes impossible. A strategy only ever sees what has already happened, and every order is filled the way a real exchange would fill it: late, at a worse price, and for a fee.</p>
+        <div class="actions">
+          <a class="button primary" href="#try">Run a backtest</a>
+          <a class="button" href="#experiment">See what the AI found</a>
+        </div>
       </div>
 
       <figure class="tape-figure">
@@ -119,18 +123,136 @@
       </div>
     </section>
 
-    <section id="experiment" class="section">
+    <section id="compare" class="section" data-result="honest-vs-naive">
       <div class="wrap">
-        <h2>Can an AI find a strategy that survives?</h2>
-        <p class="section-intro">Once the engine is finished, it becomes the referee for an experiment. AI agents will search for trading strategies in a loop, with tape deciding what actually works.</p>
+        <div class="section-head">
+          <h2>The same strategy, both ways</h2>
+          <span class="placeholder-flag" hidden>Placeholder data</span>
+        </div>
+        <p class="section-intro">
+          A <span data-bind="strategy">moving-average crossover</span> on <span data-bind="instrument">BTC/USDT</span>, every minute from <span data-bind="from"></span> to <span data-bind="to"></span>, starting with <span data-bind="initialCash"></span>.
+          A naive backtest turns it into <strong class="num" data-bind="naive.finalEquity"></strong>. In tape it ends at <strong class="num" data-bind="tape.finalEquity"></strong>.
+        </p>
+        <div class="chart-host" id="compare-chart"></div>
+        <table class="compare stats-table">
+          <caption>Results</caption>
+          <thead><tr><th scope="col"></th><th scope="col">Naive backtest</th><th scope="col">tape</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Total return</th><td class="num" data-bind="naive.totalReturn"></td><td class="num" data-bind="tape.totalReturn"></td></tr>
+            <tr><th scope="row">Sharpe ratio</th><td class="num" data-bind="naive.sharpe"></td><td class="num" data-bind="tape.sharpe"></td></tr>
+            <tr><th scope="row">Worst drawdown</th><td class="num" data-bind="naive.maxDrawdown"></td><td class="num" data-bind="tape.maxDrawdown"></td></tr>
+            <tr><th scope="row">Trades</th><td class="num" data-bind="naive.trades"></td><td class="num" data-bind="tape.trades"></td></tr>
+            <tr><th scope="row">Fees paid</th><td class="num" data-bind="naive.feesPaid"></td><td class="num" data-bind="tape.feesPaid"></td></tr>
+          </tbody>
+        </table>
+        <p class="note">Nothing about the strategy changed. Same signals, same trades. Only the execution did.</p>
+      </div>
+    </section>
+
+    <section id="try" class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Run a backtest</h2>
+          <span class="placeholder-flag" hidden data-demo-flag>Placeholder engine</span>
+        </div>
+        <p class="section-intro">This is tape itself, compiled to WebAssembly and running in your browser on a month of real BTC/USDT one-minute data. Pick a strategy, decide how honest the execution should be, and run it.</p>
+
+        <form class="demo" id="demo-form">
+          <div class="demo-row">
+            <label class="field">
+              <span>Strategy</span>
+              <select name="strategy">
+                <option value="sma">Moving-average crossover</option>
+                <option value="meanrev">Mean reversion</option>
+                <option value="breakout">Breakout</option>
+                <option value="hold">Buy and hold</option>
+              </select>
+            </label>
+            <label class="field" data-for="sma"><span>Fast average (bars)</span><input type="number" name="fast" value="20" min="2" max="500" inputmode="numeric"></label>
+            <label class="field" data-for="sma"><span>Slow average (bars)</span><input type="number" name="slow" value="100" min="3" max="2000" inputmode="numeric"></label>
+            <label class="field" data-for="meanrev" hidden><span>Window (bars)</span><input type="number" name="window" value="60" min="5" max="1000" inputmode="numeric"></label>
+            <label class="field" data-for="meanrev" hidden><span>Band (std devs)</span><input type="number" name="band" value="2" min="0.5" max="5" step="0.1" inputmode="decimal"></label>
+            <label class="field" data-for="breakout" hidden><span>Lookback (bars)</span><input type="number" name="lookback" value="240" min="5" max="5000" inputmode="numeric"></label>
+            <label class="field">
+              <span>Month</span>
+              <select name="month">
+                <option value="2024-01">January 2024</option>
+                <option value="2024-02">February 2024</option>
+                <option value="2024-03">March 2024</option>
+                <option value="2024-04">April 2024</option>
+                <option value="2024-05">May 2024</option>
+                <option value="2024-06">June 2024</option>
+                <option value="2024-07">July 2024</option>
+                <option value="2024-08">August 2024</option>
+                <option value="2024-09">September 2024</option>
+                <option value="2024-10">October 2024</option>
+                <option value="2024-11">November 2024</option>
+                <option value="2024-12">December 2024</option>
+              </select>
+            </label>
+          </div>
+
+          <fieldset class="execution">
+            <legend>Execution</legend>
+            <div class="presets" role="radiogroup" aria-label="Execution preset">
+              <label><input type="radio" name="preset" value="naive"><span>Naive</span></label>
+              <label><input type="radio" name="preset" value="realistic" checked><span>Realistic</span></label>
+              <label><input type="radio" name="preset" value="custom"><span>Custom</span></label>
+            </div>
+            <div class="sliders">
+              <label class="slider"><span>Latency</span><input type="range" name="latency" min="0" max="1000" step="10" value="100"><output data-unit="ms"></output></label>
+              <label class="slider"><span>Fees</span><input type="range" name="fees" min="0" max="30" step="0.5" value="10"><output data-unit="bps"></output></label>
+              <label class="slider"><span>Slippage</span><input type="range" name="slippage" min="0" max="30" step="0.5" value="2"><output data-unit="bps"></output></label>
+              <label class="slider"><span>Share of each bar's volume</span><input type="range" name="participation" min="1" max="100" step="1" value="10"><output data-unit="%"></output></label>
+              <label class="check"><input type="checkbox" name="touch"><span>Limit orders fill when the price only touches them</span></label>
+            </div>
+          </fieldset>
+
+          <div class="demo-submit">
+            <button class="button primary" type="submit">Run backtest</button>
+            <span class="demo-meta" data-demo="meta" aria-live="polite"></span>
+          </div>
+        </form>
+
+        <div class="demo-output" data-demo="output" hidden>
+          <div class="tiles" data-demo="tiles"></div>
+          <div class="chart-host" id="demo-chart"></div>
+          <p class="demo-hash" data-demo="hash"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="experiment" class="section" data-result="experiment">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Can an AI find a strategy that survives?</h2>
+          <span class="placeholder-flag" hidden>Placeholder data</span>
+        </div>
+        <p class="section-intro">AI agents searched for trading strategies in a loop, with tape as the referee. They trained on <span data-bind="train"></span> and never saw <span data-bind="test"></span> until the final exam.</p>
+
         <ol class="steps">
           <li><strong>Propose.</strong> A researcher agent suggests a trading idea.</li>
           <li><strong>Write.</strong> A coding agent turns it into a strategy, compiled to WebAssembly and run in a sandbox with no clock, network or files.</li>
           <li><strong>Test.</strong> tape backtests it on the training period only.</li>
           <li><strong>Critique.</strong> A critic agent looks for leaks and overfitting, then sends the strategy back or rejects it.</li>
-          <li><strong>Final exam.</strong> The survivors run once on months of data no agent has seen, against buy-and-hold and random strategies.</li>
+          <li><strong>Final exam.</strong> The survivors run once on data no agent has seen, against buy-and-hold.</li>
         </ol>
-        <p>Every attempt is counted, because trying a hundred ideas and keeping the best one is its own kind of cheating. The results will be published here, whatever they show.</p>
+
+        <div class="funnel">
+          <div class="figure"><span class="figure-value" data-bind="funnel.proposed"></span><span class="figure-label">ideas proposed</span></div>
+          <div class="figure"><span class="figure-value" data-bind="funnel.compiled"></span><span class="figure-label">compiled and ran</span></div>
+          <div class="figure"><span class="figure-value" data-bind="funnel.passedCritic"></span><span class="figure-label">passed the critic</span></div>
+          <div class="figure"><span class="figure-value" data-bind="funnel.beatBuyHold"></span><span class="figure-label">beat buy-and-hold on unseen data</span></div>
+        </div>
+
+        <h3 class="chart-title">Training results versus the final exam</h3>
+        <p class="chart-sub">Each dot is a strategy that passed the critic. If backtests told the truth, dots would sit on the diagonal.</p>
+        <div class="chart-host" id="experiment-chart"></div>
+
+        <h3 class="chart-title">From the lab notebook</h3>
+        <ul class="notebook" data-bind-list="examples"></ul>
+
+        <p>Every attempt was counted, because trying hundreds of ideas and keeping the best one is its own kind of cheating. The survivors' scores are adjusted for how many ideas were tried.</p>
       </div>
     </section>
 
@@ -142,24 +264,10 @@
           <li>Prices and cash are integers in units of 10<sup>−8</sup>, so 0.1&nbsp;+&nbsp;0.2 is exactly 0.3.</li>
           <li>Timestamps are in nanoseconds, so latency can be modelled below a millisecond.</li>
           <li>Market data comes from Binance's public archive, checked against its published SHA-256 checksums.</li>
-          <li>Data is stored as Parquet and merged across instruments in a fixed, repeatable order.</li>
+          <li>Every run produces a hash of its fills. Two runs with the same inputs always match.</li>
+          <li>AI-written strategies run as WebAssembly with a hard limit on compute and no access to anything outside.</li>
+          <li>The same engine compiles to WebAssembly for the demo on this page.</li>
           <li>Tests fail if a single event goes missing or arrives out of order.</li>
-        </ul>
-      </div>
-    </section>
-
-    <section id="status" class="section">
-      <div class="wrap">
-        <h2>Where it stands</h2>
-        <p class="section-intro">tape is being built in the open, one milestone at a time. Updated 23 September 2026.</p>
-        <ul class="milestones">
-          <li data-state="done"><span class="state">Done</span><span class="what">Core types: exact money, nanosecond time, orders and fills</span></li>
-          <li data-state="done"><span class="state">Done</span><span class="what">Market data: Binance archive, checksummed downloads, Parquet storage</span></li>
-          <li data-state="active"><span class="state">In progress</span><span class="what">The engine: event loop, execution model, portfolio, statistics</span></li>
-          <li><span class="state">Next</span><span class="what">Honest versus naive: the same strategies, both ways</span></li>
-          <li><span class="state">Planned</span><span class="what">A WebAssembly sandbox for untrusted strategies</span></li>
-          <li><span class="state">Planned</span><span class="what">The AI research experiment</span></li>
-          <li><span class="state">Planned</span><span class="what">An interactive backtest that runs in your browser</span></li>
         </ul>
       </div>
     </section>
@@ -167,11 +275,13 @@
 
   <footer class="site-footer">
     <div class="wrap">
-      <p>tape is built by <a href="https://victorarowo.com">Victor Arowo</a>.</p>
+      <p>tape is built by <a href="https://victorarowo.com">Victor Arowo</a>. <a href="https://victorarowo.com/blog/">Read the write-up</a>.</p>
       <p class="disclaimer">A research project. Nothing here is investment advice.</p>
     </div>
   </footer>
 
   <script src="tape.js" defer></script>
+  <script type="module" src="results.js"></script>
+  <script type="module" src="demo.js"></script>
 </body>
 </html>
