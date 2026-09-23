@@ -1,3 +1,4 @@
+mod compare;
 mod run;
 
 use std::path::PathBuf;
@@ -30,6 +31,9 @@ enum Command {
     Data(DataCommand),
     /// Backtest a reference strategy on stored data.
     Run(run::RunArgs),
+    /// Show how much of a strategy's backtest survives realistic
+    /// execution, one assumption at a time.
+    Compare(compare::CompareArgs),
 }
 
 #[derive(Subcommand)]
@@ -139,6 +143,16 @@ fn main() -> Result<()> {
             let from = parse_month(args.from())?;
             let to = args.to().map(parse_month).transpose()?.unwrap_or(from);
             run::run(&cli.data_dir, args, months(from, to)?)
+        }
+        Command::Compare(args) => {
+            let from = parse_month(&args.from)?;
+            let to = args
+                .to
+                .as_deref()
+                .map(parse_month)
+                .transpose()?
+                .unwrap_or(from);
+            compare::compare(&cli.data_dir, args, months(from, to)?)
         }
         Command::Data(DataCommand::Info { paths }) => {
             for path in paths {

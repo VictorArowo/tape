@@ -57,7 +57,7 @@ pub struct RunArgs {
 }
 
 /// Trading rules for symbols we know; others need to be added here.
-fn instrument(symbol: &str) -> Result<Instrument> {
+pub(crate) fn instrument(symbol: &str) -> Result<Instrument> {
     let (tick, lot) = match symbol {
         "BTCUSDT" => ("0.01", "0.00001"),
         "ETHUSDT" => ("0.01", "0.0001"),
@@ -72,7 +72,7 @@ fn instrument(symbol: &str) -> Result<Instrument> {
     ))
 }
 
-fn load(
+pub(crate) fn load(
     data_dir: &Path,
     symbol: &str,
     interval: &str,
@@ -126,7 +126,7 @@ struct Outcome {
     seconds: f64,
 }
 
-fn money(value: f64) -> String {
+pub(crate) fn money(value: f64) -> String {
     let cents = (value * 100.0).round() as i64;
     let (whole, frac) = (cents.abs() / 100, cents.abs() % 100);
     let digits = whole.to_string();
@@ -140,11 +140,11 @@ fn money(value: f64) -> String {
     format!("{}{grouped}.{frac:02}", if cents < 0 { "-" } else { "" })
 }
 
-fn pct(value: f64) -> String {
+pub(crate) fn pct(value: f64) -> String {
     format!("{:+.2}%", value * 100.0)
 }
 
-fn ratio(value: Option<f64>) -> String {
+pub(crate) fn ratio(value: Option<f64>) -> String {
     value.map_or("n/a".into(), |v| format!("{v:.2}"))
 }
 

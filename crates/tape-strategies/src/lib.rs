@@ -1,6 +1,8 @@
 //! Reference strategies: simple, well-known baselines to test the engine
 //! against and to compare anything cleverer with.
 
+pub mod notebook;
+
 use std::collections::VecDeque;
 
 use tape_core::{InstrumentId, MarketEvent, OrderRequest, Price, Side};
