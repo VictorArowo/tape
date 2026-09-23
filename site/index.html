@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>tape: a backtesting engine that doesn't lie</title>
+  <meta name="description" content="tape is a backtesting engine for trading strategies that makes the usual mistakes impossible: no look-ahead, realistic fills, real fees, exact accounting.">
+  <meta name="theme-color" content="#161b36">
+  <meta property="og:title" content="tape: a backtesting engine that doesn't lie">
+  <meta property="og:description" content="A strategy only ever sees what has already happened, and every order fills the way a real exchange would fill it.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&family=Cutive+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="masthead">
+    <a class="wordmark" href="#top" aria-label="tape, back to top">tape</a>
+    <nav aria-label="Sections">
+      <a href="#lies">How backtests lie</a>
+      <a href="#trade">One trade</a>
+      <a href="#experiment">The experiment</a>
+      <a href="#status">Status</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="wrap">
+        <h1>Most backtests lie.</h1>
+        <p class="lede">tape is a backtesting engine for trading strategies, built to make the usual mistakes impossible. A strategy only ever sees what has already happened, and every order is filled the way a real exchange would fill it: late, at a worse price, and for a fee.</p>
+      </div>
+
+      <figure class="tape-figure">
+        <div class="tape-readout wrap" aria-hidden="true">
+          <span class="readout-symbol">BTC/USDT</span>
+          <span class="readout-time" data-readout="time">12:00 UTC</span>
+          <span class="readout-price" data-readout="price">43,555.00</span>
+          <span class="readout-change" data-readout="change"></span>
+        </div>
+        <div class="tape">
+          <canvas id="tape-canvas" role="img" aria-label="A strip of ticker tape printing bitcoin's price minute by minute on 3 January 2024. The tape is blank to the right of a line marking the present."></canvas>
+        </div>
+        <figcaption class="wrap">
+          <span>Real BTC/USDT prices, one minute at a time, from 3 January 2024. Nothing to the right of the line has been printed yet. That's all a strategy ever gets to see.</span>
+          <button class="tape-toggle" type="button" aria-pressed="false">Pause</button>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="lies" class="section">
+      <div class="wrap">
+        <h2>Five ways a backtest lies</h2>
+        <p class="section-intro">A backtest replays history to see how a strategy would have done. Most of them flatter the strategy in the same few ways. Each one on its own can turn a losing idea into a winning chart.</p>
+        <dl class="lies">
+          <div class="lie">
+            <dt>It knows how the minute ends before it starts.</dt>
+            <dd>A one-minute bar's high, low and close aren't known until the minute is over. In tape, a bar only becomes visible when it closes, and a strategy has no way to read anything else.</dd>
+          </div>
+          <div class="lie">
+            <dt>It buys at the price it just saw.</dt>
+            <dd>By the time an order reaches the exchange, the price has moved on. tape delays every order, fills market orders at the next available price plus slippage, and fills resting limit orders only when the market trades through them.</dd>
+          </div>
+          <div class="lie">
+            <dt>It trades as much as it likes.</dt>
+            <dd>Real markets have finite volume. tape caps how much of each bar an order can take, so large orders fill in pieces, or not at all.</dd>
+          </div>
+          <div class="lie">
+            <dt>It trades for free.</dt>
+            <dd>Every fill in tape pays the exchange's maker or taker fee. For strategies that trade often, fees alone are frequently the difference between a profit and a loss.</dd>
+          </div>
+          <div class="lie">
+            <dt>Its numbers don't add up.</dt>
+            <dd>Floating-point money drifts, and results can change from one run to the next. tape keeps prices, quantities and cash as exact integers and replays events in a fixed order. The same inputs give identical results, every time.</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <section id="trade" class="section">
+      <div class="wrap">
+        <h2>One trade, done properly</h2>
+        <p class="section-intro">A real minute from 3 January 2024, just as bitcoin fell about 6% in ten minutes. A strategy decides to buy 0.1&nbsp;BTC when the 12:00 bar closes. Here's what tape does with that decision.</p>
+
+        <ol class="timeline">
+          <li>
+            <span class="t">12:01:00.000</span>
+            <p>The 12:00–12:01 bar closes at <span class="num">43,555.00</span>. Only now can the strategy see it. It sends a market order to buy 0.1&nbsp;BTC.</p>
+          </li>
+          <li>
+            <span class="t">12:01:00.100</span>
+            <p>The order reaches the exchange after 100&nbsp;ms of latency. The price it was based on is already history.</p>
+          </li>
+          <li>
+            <span class="t">Next price</span>
+            <p>It fills at the next bar's open, <span class="num">43,555.01</span>, plus 2&nbsp;bps of slippage: <span class="num">43,563.73</span>. The taker fee is 0.1%, or <span class="num">$4.36</span>.</p>
+          </li>
+          <li>
+            <span class="t">12:02:00.000</span>
+            <p>That bar closes at <span class="num">42,573.63</span>. The position is already down <span class="num loss">$99.01</span> before fees.</p>
+          </li>
+        </ol>
+
+        <table class="compare">
+          <caption>The same decision in two backtests</caption>
+          <thead>
+            <tr><th scope="col"></th><th scope="col">Naive backtest</th><th scope="col">tape</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Fill price</th><td class="num">43,555.00</td><td class="num">43,563.73</td></tr>
+            <tr><th scope="row">Based on</th><td>The close it just used to decide</td><td>The next bar's open, plus slippage</td></tr>
+            <tr><th scope="row">Filled at</th><td>12:01:00.000, instantly</td><td>After 100&nbsp;ms of latency</td></tr>
+            <tr><th scope="row">Fee</th><td class="num">$0.00</td><td class="num">$4.36</td></tr>
+          </tbody>
+        </table>
+        <p class="note">That's $5.23 worse on a single purchase: 87 cents of price and $4.36 of fees. It looks small. A strategy that trades a few hundred times a month pays it on every trade, on the way in and on the way out.</p>
+      </div>
+    </section>
+
+    <section id="experiment" class="section">
+      <div class="wrap">
+        <h2>Can an AI find a strategy that survives?</h2>
+        <p class="section-intro">Once the engine is finished, it becomes the referee for an experiment. AI agents will search for trading strategies in a loop, with tape deciding what actually works.</p>
+        <ol class="steps">
+          <li><strong>Propose.</strong> A researcher agent suggests a trading idea.</li>
+          <li><strong>Write.</strong> A coding agent turns it into a strategy, compiled to WebAssembly and run in a sandbox with no clock, network or files.</li>
+          <li><strong>Test.</strong> tape backtests it on the training period only.</li>
+          <li><strong>Critique.</strong> A critic agent looks for leaks and overfitting, then sends the strategy back or rejects it.</li>
+          <li><strong>Final exam.</strong> The survivors run once on months of data no agent has seen, against buy-and-hold and random strategies.</li>
+        </ol>
+        <p>Every attempt is counted, because trying a hundred ideas and keeping the best one is its own kind of cheating. The results will be published here, whatever they show.</p>
+      </div>
+    </section>
+
+    <section id="engine" class="section">
+      <div class="wrap">
+        <h2>Under the hood</h2>
+        <ul class="facts">
+          <li>Written in Rust, with unsafe code forbidden.</li>
+          <li>Prices and cash are integers in units of 10<sup>−8</sup>, so 0.1&nbsp;+&nbsp;0.2 is exactly 0.3.</li>
+          <li>Timestamps are in nanoseconds, so latency can be modelled below a millisecond.</li>
+          <li>Market data comes from Binance's public archive, checked against its published SHA-256 checksums.</li>
+          <li>Data is stored as Parquet and merged across instruments in a fixed, repeatable order.</li>
+          <li>Tests fail if a single event goes missing or arrives out of order.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="status" class="section">
+      <div class="wrap">
+        <h2>Where it stands</h2>
+        <p class="section-intro">tape is being built in the open, one milestone at a time. Updated 23 September 2026.</p>
+        <ul class="milestones">
+          <li data-state="done"><span class="state">Done</span><span class="what">Core types: exact money, nanosecond time, orders and fills</span></li>
+          <li data-state="done"><span class="state">Done</span><span class="what">Market data: Binance archive, checksummed downloads, Parquet storage</span></li>
+          <li data-state="active"><span class="state">In progress</span><span class="what">The engine: event loop, execution model, portfolio, statistics</span></li>
+          <li><span class="state">Next</span><span class="what">Honest versus naive: the same strategies, both ways</span></li>
+          <li><span class="state">Planned</span><span class="what">A WebAssembly sandbox for untrusted strategies</span></li>
+          <li><span class="state">Planned</span><span class="what">The AI research experiment</span></li>
+          <li><span class="state">Planned</span><span class="what">An interactive backtest that runs in your browser</span></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>tape is built by <a href="https://victorarowo.com">Victor Arowo</a>.</p>
+      <p class="disclaimer">A research project. Nothing here is investment advice.</p>
+    </div>
+  </footer>
+
+  <script src="tape.js" defer></script>
+</body>
+</html>
