@@ -30,8 +30,17 @@ The results sections read JSON from `data/results/`:
   Small real runs can be published with `"pilot": true` added, which shows a
   "Pilot run" badge instead.
 
-The demo in `demo.js` runs a placeholder engine (`ENGINE_IS_PLACEHOLDER`) until the
-WebAssembly build is wired into `runBacktest`.
+## Demo engine
+
+The "Run a backtest" demo runs tape's real engine, compiled to WebAssembly, in `engine/`:
+`tape.wasm`, the `tape-engine.js` loader, and one data file per month of 2024 in
+`engine/data/` (loaded on first use). Rebuild it from the repo root with:
+
+```sh
+./web/build.sh site/engine
+```
+
+`engine/check.html` is a self-test page the build writes; it's gitignored so it isn't deployed.
 
 Do not launch the site while any placeholder flag is visible.
 

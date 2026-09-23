@@ -412,10 +412,13 @@ h3.chart-title {
 .presets span { display: block; padding: 0.4rem 0.95rem; border-radius: 999px; font-size: 0.9375rem; color: var(--muted); }
 .presets input:checked + span { background: var(--text); color: var(--ink); }
 .presets input:focus-visible + span { outline: 2px solid var(--mark); outline-offset: 2px; }
-.sliders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 2.5rem; margin-top: 1.25rem; }
-.slider { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.35rem 1rem; font-size: 0.9375rem; color: var(--muted); }
+.sliders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 2.5rem; margin-top: 1.25rem; align-items: start; }
+.slider { display: grid; grid-template-columns: 1fr auto; align-items: center; align-content: start; gap: 0.35rem 1rem; font-size: 0.9375rem; color: var(--muted); }
 .slider input { grid-column: 1 / -1; width: 100%; accent-color: var(--mark); }
 .slider output { color: var(--text); font-variant-numeric: tabular-nums; }
+.slider .hint { grid-column: 1 / -1; font-size: 0.8125rem; color: var(--muted); line-height: 1.4; }
+.hint-inline { font-size: 0.8125rem; }
+.demo-meta.error { color: var(--loss); }
 .check { display: flex; align-items: center; gap: 0.6rem; font-size: 0.9375rem; color: var(--muted); align-self: end; }
 .check input { accent-color: var(--mark); width: 1.05rem; height: 1.05rem; }
 .check[hidden] { display: none; }

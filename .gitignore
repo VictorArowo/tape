@@ -5,3 +5,4 @@
 .claude/
 .env
 /web/dist
+site/engine/check.html

@@ -1,8 +1,9 @@
-// The in-browser backtest. `runBacktest` is the seam where tape's
-// WebAssembly build plugs in. Until then it returns placeholder results
-// (flagged on the page) with the same shape the engine will produce.
+// The in-browser backtest: tape's engine compiled to WebAssembly, run on a
+// month of real BTC/USDT one-minute bars. Each run is two backtests: the
+// settings on the form, and naive execution for comparison.
 
 import { lineChart } from "./charts.js";
+import { createEngine } from "./engine/tape-engine.js";
 import { colors, fmt } from "./format.js";
 
 const PRESETS = {
@@ -15,7 +16,6 @@ const output = document.querySelector('[data-demo="output"]');
 const tiles = document.querySelector('[data-demo="tiles"]');
 const meta = document.querySelector('[data-demo="meta"]');
 const hash = document.querySelector('[data-demo="hash"]');
-const flag = document.querySelector("[data-demo-flag]");
 
 function readParams() {
   const f = new FormData(form);
@@ -38,78 +38,21 @@ function readParams() {
   };
 }
 
-// --- Placeholder engine -----------------------------------------------------
+// --- Engine -------------------------------------------------------------------
 
-function hashString(s) {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
-  return h >>> 0;
+let enginePromise = null;
+
+// Loads the WebAssembly module once. A failed load can be retried.
+function engine() {
+  enginePromise ??= createEngine({ base: "./engine/" }).catch((err) => {
+    enginePromise = null;
+    throw err;
+  });
+  return enginePromise;
 }
-
-function rng(seed) {
-  let a = seed || 1;
-  return () => {
-    a ^= a << 13;
-    a ^= a >>> 17;
-    a ^= a << 5;
-    return ((a >>> 0) % 1_000_000) / 1_000_000;
-  };
-}
-
-function placeholderRun(params) {
-  const signal = JSON.stringify({ ...params, execution: undefined });
-  const rand = rng(hashString(signal));
-  const hours = 24 * 30;
-  const tradesPerDay = params.strategy === "hold" ? 0 : Math.max(1, Math.round(240 / Math.max(5, params.fast || params.window || params.lookback / 4)));
-  const e = params.execution;
-  const costPerTrade = (e.feeBps + e.slippageBps) / 10_000 + e.latencyMs / 1_000_000;
-  const cap = e.participationPct / 100;
-  let naive = 10_000;
-  let honest = 10_000;
-  const naiveSeries = [naive];
-  const honestSeries = [honest];
-  let fees = 0;
-  for (let h = 1; h < hours; h++) {
-    const move = (rand() - 0.48) * 0.006;
-    naive *= 1 + move;
-    const trades = tradesPerDay / 24;
-    const cost = honest * trades * costPerTrade * 0.5;
-    fees += honest * trades * (e.feeBps / 10_000) * 0.5;
-    honest = honest * (1 + move * (0.85 + 0.15 * cap)) - cost;
-    naiveSeries.push(naive);
-    honestSeries.push(honest);
-  }
-  const [y, m] = params.month.split("-").map(Number);
-  const dates = honestSeries.map((_, i) => new Date(Date.UTC(y, m - 1, 1, i)).toISOString());
-  let peak = honestSeries[0];
-  let maxDd = 0;
-  for (const v of honestSeries) {
-    peak = Math.max(peak, v);
-    maxDd = Math.min(maxDd, v / peak - 1);
-  }
-  return {
-    placeholder: true,
-    events: 44_640,
-    elapsedMs: 18 + (hashString(JSON.stringify(params)) % 40),
-    runHash: hashString(JSON.stringify(params)).toString(16).padStart(8, "0") + hashString(signal).toString(16).padStart(8, "0"),
-    dates,
-    equity: honestSeries,
-    naiveEquity: naiveSeries,
-    stats: {
-      totalReturn: honest / 10_000 - 1,
-      naiveReturn: naive / 10_000 - 1,
-      maxDrawdown: maxDd,
-      trades: tradesPerDay * 30,
-      feesPaid: fees,
-    },
-  };
-}
-
-// Flip to false once runBacktest calls the WebAssembly engine.
-const ENGINE_IS_PLACEHOLDER = true;
 
 async function runBacktest(params) {
-  return placeholderRun(params);
+  return (await engine()).run(params);
 }
 
 // --- Page wiring -------------------------------------------------------------
@@ -161,10 +104,18 @@ function tile(label, value, note) {
 
 async function run() {
   const params = readParams();
-  meta.textContent = "Running…";
+  meta.classList.remove("error");
+  meta.textContent = enginePromise ? "Running…" : "Loading the engine…";
   output.classList.add("is-running");
-  const result = await runBacktest(params);
-  flag.hidden = !result.placeholder;
+  let result;
+  try {
+    result = await runBacktest(params);
+  } catch (err) {
+    output.classList.remove("is-running");
+    meta.classList.add("error");
+    meta.textContent = err instanceof Error ? capitalize(err.message) : "Something went wrong running the backtest.";
+    return;
+  }
   output.hidden = false;
   output.classList.remove("is-running");
 
@@ -195,8 +146,14 @@ async function run() {
     ariaLabel: `Equity over the month. Your settings end at ${fmt.money(result.equity.at(-1))}; a naive backtest ends at ${fmt.money(result.naiveEquity.at(-1))}.`,
   });
 
-  meta.textContent = `${fmt.count(result.events)} events in ${result.elapsedMs} ms, in your browser.`;
-  hash.textContent = `Run hash ${result.runHash}. Run it again with the same settings and you'll get the same hash.`;
+  meta.textContent = `Two backtests of ${fmt.count(result.events)} one-minute bars each, in ${fmt.count(Math.round(result.elapsedMs))} ms, in your browser.`;
+  hash.textContent =
+    `Run hash ${result.runHash}. Run it again with the same settings and you'll get the same hash.` +
+    (form.elements.preset.value === "realistic" ? " With the Realistic preset, it matches tape's native engine exactly." : "");
+}
+
+function capitalize(text) {
+  return text.charAt(0).toUpperCase() + text.slice(1).replace(/([^.])$/, "$1.");
 }
 
 form.addEventListener("input", (e) => {
@@ -214,6 +171,17 @@ form.addEventListener("submit", (e) => {
   run();
 });
 
-flag.hidden = !ENGINE_IS_PLACEHOLDER;
+// Start loading the engine and the default month as the demo scrolls near.
+new IntersectionObserver(
+  (entries, observer) => {
+    if (!entries.some((e) => e.isIntersecting)) return;
+    observer.disconnect();
+    engine()
+      .then((e) => e.preload(form.elements.month.value))
+      .catch(() => {});
+  },
+  { rootMargin: "800px" },
+).observe(form);
+
 syncStrategyFields();
 syncOutputs();
