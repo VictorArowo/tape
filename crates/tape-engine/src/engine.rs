@@ -60,6 +60,8 @@ pub enum EngineError {
         "strategy sent more than {MAX_COMMANDS_PER_INSTANT} commands at {0} without time advancing"
     )]
     RunawayStrategy(Timestamp),
+    #[error("strategy aborted at {at}: {reason}")]
+    StrategyAborted { at: Timestamp, reason: String },
 }
 
 pub struct Backtest {
@@ -114,6 +116,7 @@ impl Backtest {
         let mut next = pull(&run)?;
         run.now = next.as_ref().map_or(Timestamp::EPOCH, MarketEvent::ts);
         run.callback(strategy, |s, ctx| s.on_start(ctx));
+        run.check_abort()?;
 
         let mut instant = (run.now, 0_u32);
         while let Some(event) = next.take() {
@@ -136,9 +139,11 @@ impl Backtest {
                     next = pull(&run)?;
                 }
             }
+            run.check_abort()?;
         }
 
         run.finish(strategy);
+        run.check_abort()?;
         Ok(run.into_result(strategy.name()))
     }
 }
@@ -192,6 +197,7 @@ struct Run<'a> {
     notices: Vec<Notice>,
     events: u64,
     span: Option<(Timestamp, Timestamp)>,
+    aborted: Option<String>,
 }
 
 impl<'a> Run<'a> {
@@ -219,6 +225,17 @@ impl<'a> Run<'a> {
             notices: Vec::new(),
             events: 0,
             span: None,
+            aborted: None,
+        }
+    }
+
+    fn check_abort(&mut self) -> Result<(), EngineError> {
+        match self.aborted.take() {
+            Some(reason) => Err(EngineError::StrategyAborted {
+                at: self.now,
+                reason,
+            }),
+            None => Ok(()),
         }
     }
 
@@ -237,6 +254,7 @@ impl<'a> Run<'a> {
             fees: &self.config.execution.fees,
             next_order_id: &mut self.next_order_id,
             outbox: &mut self.outbox,
+            abort: &mut self.aborted,
         };
         f(strategy, &mut ctx);
         let arrival = self.now + self.config.execution.latency;

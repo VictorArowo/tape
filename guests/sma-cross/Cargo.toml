@@ -1,0 +1,22 @@
+[package]
+name = "tape-guest-sma-cross"
+description = "The reference moving-average crossover, compiled for the tape sandbox"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+tape-guest = { path = "../../crates/tape-guest" }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+
+# Built on its own for wasm32, outside the main workspace.
+[workspace]

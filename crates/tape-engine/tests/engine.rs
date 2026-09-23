@@ -473,6 +473,59 @@ fn equity_is_sampled_on_the_configured_interval() {
     assert_eq!(minutes, vec![1, 3, 6, 9, 10]);
 }
 
+#[test]
+fn a_strategy_can_abort_the_run() {
+    struct Quitter;
+    impl Strategy for Quitter {
+        fn name(&self) -> String {
+            "quitter".into()
+        }
+        fn on_market(&mut self, ctx: &mut Context<'_>, _: &MarketEvent) {
+            if ctx.now() >= t0() + TimeDelta::from_mins(2) {
+                ctx.abort("giving up");
+            }
+        }
+    }
+    let rows: Vec<_> = (0..5).map(|_| ("100", "100", "100", "100", "1")).collect();
+    let err = Backtest::new(config(ExecutionModel::naive()), [btc()])
+        .run(
+            &mut Quitter,
+            bars(&rows).into_iter().map(Ok::<_, Infallible>),
+        )
+        .unwrap_err();
+    match err {
+        tape_engine::EngineError::StrategyAborted { at, reason } => {
+            assert_eq!(at, t0() + TimeDelta::from_mins(2));
+            assert_eq!(reason, "giving up");
+        }
+        other => panic!("unexpected error: {other}"),
+    }
+}
+
+#[test]
+fn next_order_id_predicts_what_submit_returns() {
+    struct Predictor(Vec<(tape_core::OrderId, tape_core::OrderId)>);
+    impl Strategy for Predictor {
+        fn name(&self) -> String {
+            "predictor".into()
+        }
+        fn on_market(&mut self, ctx: &mut Context<'_>, _: &MarketEvent) {
+            for _ in 0..2 {
+                let predicted = ctx.next_order_id();
+                let actual = ctx.submit(OrderRequest::limit(BTC, Side::Buy, q("0.001"), p("1")));
+                self.0.push((predicted, actual));
+            }
+        }
+    }
+    let mut s = Predictor(vec![]);
+    let rows: Vec<_> = (0..3).map(|_| ("100", "100", "100", "100", "1")).collect();
+    Backtest::new(config(ExecutionModel::naive()), [btc()])
+        .run(&mut s, bars(&rows).into_iter().map(Ok::<_, Infallible>))
+        .unwrap();
+    assert_eq!(s.0.len(), 6);
+    assert!(s.0.iter().all(|(predicted, actual)| predicted == actual));
+}
+
 mod properties {
     use super::*;
     // proptest also has a trait named `Strategy` (a value generator);

@@ -1,6 +1,8 @@
 [workspace]
 resolver = "3"
 members = ["crates/*"]
+# Strategies compiled to WebAssembly; each is its own workspace.
+exclude = ["guests"]
 
 [workspace.package]
 version = "0.1.0"
@@ -15,7 +17,9 @@ serde_json = "1"
 thiserror = "2"
 
 [workspace.lints.rust]
-unsafe_code = "forbid"
+# Denied everywhere except tape-guest, which needs it at the WebAssembly
+# boundary and opts in explicitly.
+unsafe_code = "deny"
 
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }

@@ -4,6 +4,7 @@
 //! Nothing here knows about the engine or where data comes from, so the same
 //! types can be compiled into sandboxed strategies later on.
 
+pub mod abi;
 pub mod fixed;
 pub mod instrument;
 pub mod market;

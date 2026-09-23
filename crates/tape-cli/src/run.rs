@@ -18,6 +18,8 @@ use tape_strategies::{BuyAndHold, SmaCross};
 pub enum StrategyName {
     BuyAndHold,
     SmaCross,
+    /// A strategy compiled to WebAssembly, run in the sandbox (needs --module).
+    Wasm,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, ValueEnum)]
@@ -51,6 +53,9 @@ pub struct RunArgs {
     /// Slow moving average length, in bars (sma-cross).
     #[arg(long, default_value_t = 60)]
     slow: usize,
+    /// The compiled strategy to run with `wasm`.
+    #[arg(long, required_if_eq("strategy", "wasm"))]
+    module: Option<PathBuf>,
     /// Write full results (orders, fills, equity curve) as JSON.
     #[arg(long)]
     json: Option<PathBuf>,
@@ -111,11 +116,22 @@ impl RunArgs {
     }
 }
 
-fn make_strategy(args: &RunArgs) -> Box<dyn Strategy> {
-    match args.strategy {
+fn make_strategy(args: &RunArgs) -> Result<Box<dyn Strategy>> {
+    Ok(match args.strategy {
         StrategyName::BuyAndHold => Box::new(BuyAndHold::new(InstrumentId(1))),
         StrategyName::SmaCross => Box::new(SmaCross::new(InstrumentId(1), args.fast, args.slow)),
-    }
+        StrategyName::Wasm => {
+            let path = args.module.as_ref().expect("clap requires --module");
+            let bytes =
+                fs::read(path).with_context(|| format!("failed to read {}", path.display()))?;
+            let sandbox = tape_wasm::Sandbox::new(tape_wasm::Limits::default());
+            Box::new(
+                sandbox
+                    .load(bytes)
+                    .with_context(|| format!("failed to load {}", path.display()))?,
+            )
+        }
+    })
 }
 
 struct Outcome {
@@ -169,7 +185,7 @@ pub fn run(data_dir: &Path, args: RunArgs, periods: Vec<Period>) -> Result<()> {
         let backtest = Backtest::new(config, [instrument.clone()]);
 
         let started = Instant::now();
-        let mut strategy = make_strategy(&args);
+        let mut strategy = make_strategy(&args)?;
         let result = backtest
             .run(
                 strategy.as_mut(),

@@ -20,8 +20,8 @@ Early. Research and paper trading only.
 | M0 Workspace, CI | done |
 | M1 Core types, market data loading | done |
 | M2 Engine, execution model, portfolio, metrics, CLI | done |
-| M3 Honest vs naive backtest comparison | |
-| M4 WebAssembly strategy sandbox | |
+| M3 Honest vs naive backtest comparison | done |
+| M4 WebAssembly strategy sandbox | done |
 | M5 Agent research desk | |
 | M6 Web demo and write-up | |
 
@@ -34,7 +34,22 @@ crates/
   tape-engine      event loop, simulated exchange, portfolio accounting
   tape-metrics     returns, Sharpe, Sortino, drawdowns
   tape-strategies  reference strategies (buy and hold, moving-average crossover)
+  tape-guest       SDK for strategies compiled to WebAssembly
+  tape-wasm        the sandbox that runs them: capability, compute and memory limits
   tape-cli         the `tape` command
+guests/
+  sma-cross        the reference crossover, compiled for the sandbox
+```
+
+## The sandbox
+
+Strategies can be compiled to WebAssembly and run inside a sandbox, so code nobody has reviewed (for example, code an AI agent just wrote) can be backtested safely. A module can only import the functions tape provides: there's no clock, randomness, file system or network. Each callback gets a fixed compute budget, memory is capped, and floating point is made deterministic. The sandboxed crossover in `guests/sma-cross` produces bit-identical orders, fills and run hashes to the native one.
+
+```sh
+cargo build --release --target wasm32-unknown-unknown \
+  --manifest-path guests/sma-cross/Cargo.toml --target-dir target/guests
+cargo run --release -p tape-cli -- run wasm --from 2024-01 \
+  --module target/guests/wasm32-unknown-unknown/release/tape_guest_sma_cross.wasm
 ```
 
 ## Try it

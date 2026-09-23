@@ -1,0 +1,14 @@
+[package]
+name = "tape-guest"
+description = "SDK for writing tape strategies that run in the WebAssembly sandbox"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+tape-core = { version = "0.1.0", path = "../tape-core" }
+
+[lints]
+workspace = true

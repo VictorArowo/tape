@@ -1,0 +1,20 @@
+[package]
+name = "tape-wasm"
+description = "Runs WebAssembly strategies in a sandbox with compute, memory and capability limits"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+thiserror.workspace = true
+tape-core = { version = "0.1.0", path = "../tape-core" }
+tape-engine = { version = "0.1.0", path = "../tape-engine" }
+wasmtime = "49.0.0"
+
+[dev-dependencies]
+tape-strategies = { version = "0.1.0", path = "../tape-strategies" }
+
+[lints]
+workspace = true

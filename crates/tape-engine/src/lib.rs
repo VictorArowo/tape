@@ -18,4 +18,5 @@ pub use portfolio::Portfolio;
 pub use report::{BacktestResult, EquityPoint, OrderRecord, OrderStatus};
 pub use strategy::{
     CancelReason, Context, OpenOrder, OrderState, OrderUpdate, RejectReason, Strategy,
+    affordable_qty,
 };
