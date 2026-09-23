@@ -98,6 +98,7 @@ fn a_scripted_experiment_runs_end_to_end() {
         );
     let config = LabConfig {
         attempts: 2,
+        workers: 1,
         max_repairs: 2,
         initial_cash: Money::from_int(10_000).unwrap(),
         execution: ExecutionModel::realistic(),
@@ -105,11 +106,17 @@ fn a_scripted_experiment_runs_end_to_end() {
         out_dir: out.path().to_owned(),
     };
     let budget = Budget::new(1.0);
-    let mut lines = Vec::new();
-    let report = run(&config, &market, &model, &budget, &builder, &mut |line| {
-        lines.push(line.to_owned())
-    })
+    let lines = std::sync::Mutex::new(Vec::new());
+    let report = run(
+        &config,
+        &market,
+        &model,
+        &budget,
+        &builder,
+        &|line: &str| lines.lock().unwrap().push(line.to_owned()),
+    )
     .unwrap();
+    let lines = lines.into_inner().unwrap();
 
     let first = &report.attempts[0];
     assert_eq!(
@@ -184,6 +191,7 @@ fn the_run_stops_cleanly_when_the_budget_runs_out() {
     );
     let config = LabConfig {
         attempts: 10,
+        workers: 3,
         max_repairs: 1,
         initial_cash: Money::from_int(10_000).unwrap(),
         execution: ExecutionModel::realistic(),
@@ -191,7 +199,7 @@ fn the_run_stops_cleanly_when_the_budget_runs_out() {
         out_dir: out.path().to_owned(),
     };
     let budget = Budget::new(0.5);
-    let report = run(&config, &market, &model, &budget, &builder, &mut |_| {}).unwrap();
+    let report = run(&config, &market, &model, &budget, &builder, &|_: &str| {}).unwrap();
     assert!(report.stopped.contains("budget"), "{}", report.stopped);
     assert!(report.spent_usd <= 0.5);
     assert!(out.path().join("experiment.json").exists());

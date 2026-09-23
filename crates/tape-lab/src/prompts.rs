@@ -40,7 +40,7 @@ pub fn researcher(brief: &MarketBrief, history: &str) -> Prompt {
          Propose ONE strategy idea at a time. It must be long-only or flat, simple enough to implement \
          in about a hundred lines, and built only from the bars it has seen so far (prices, volumes and \
          the time of day or day of week from bar timestamps). Prefer ideas with an economic reason to \
-         work over pattern-matching. Make each idea genuinely different from the ones already tried, \
+         work over pattern-matching. Don't propose buying and holding with a filter that almost never triggers: that is buy-and-hold under another name, and a real strategy should trade at least a few dozen times over the period. Make each idea genuinely different from the ones already tried, \
          and learn from why earlier ideas failed.",
         symbol = brief.symbol,
         from = brief.train_from,

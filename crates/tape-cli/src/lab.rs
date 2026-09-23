@@ -23,8 +23,12 @@ pub struct LabArgs {
     /// Hard spending cap in US dollars. The run stops before exceeding it.
     #[arg(long, default_value = "10")]
     budget: f64,
+    /// gpt-6-luna or gpt-6-sol.
     #[arg(long, default_value = "gpt-6-luna")]
     model: String,
+    /// Attempts in flight at once.
+    #[arg(long, default_value_t = 4)]
+    workers: usize,
     /// Reasoning effort: none, low, medium, high, xhigh or max.
     #[arg(long, default_value = "low")]
     effort: String,
@@ -34,9 +38,11 @@ pub struct LabArgs {
     pub train_from: String,
     #[arg(long, default_value = "2024-12")]
     pub train_to: String,
-    #[arg(long, default_value = "2025-01")]
+    /// First test month. The default is after gpt-6-luna's knowledge cutoff
+    /// (18 May 2026), so the model can't have seen what happened.
+    #[arg(long, default_value = "2026-06")]
     pub test_from: String,
-    #[arg(long, default_value = "2025-06")]
+    #[arg(long, default_value = "2026-08")]
     pub test_to: String,
     /// Months before the test period that strategies see first, so their
     /// indicators are ready; they don't count towards the test results.
@@ -106,9 +112,11 @@ pub struct EvaluateArgs {
     pub train_from: String,
     #[arg(long, default_value = "2024-12")]
     pub train_to: String,
-    #[arg(long, default_value = "2025-01")]
+    /// First test month. The default is after gpt-6-luna's knowledge cutoff
+    /// (18 May 2026), so the model can't have seen what happened.
+    #[arg(long, default_value = "2026-06")]
     pub test_from: String,
-    #[arg(long, default_value = "2025-06")]
+    #[arg(long, default_value = "2026-08")]
     pub test_to: String,
     #[arg(long, default_value_t = 4)]
     pub warmup_months: usize,
@@ -196,14 +204,16 @@ pub fn evaluate(
     });
     let config = LabConfig {
         attempts: 0,
+        workers: 1,
         max_repairs: 0,
         initial_cash: args.cash,
         execution: ExecutionModel::realistic(),
         limits: Limits::default(),
         out_dir: out.clone(),
     };
-    let report =
-        tape_lab::lab::evaluate(&config, &market, &args.run, &mut |line| eprintln!("{line}"))?;
+    let report = tape_lab::lab::evaluate(&config, &market, &args.run, &|line: &str| {
+        eprintln!("{line}")
+    })?;
     print_summary(&report, &out);
     Ok(())
 }
@@ -251,6 +261,7 @@ pub fn lab(
         .unwrap_or_else(|| root.join("results/lab").join(run_id()));
     let config = LabConfig {
         attempts: args.attempts,
+        workers: args.workers,
         max_repairs: 2,
         initial_cash: args.cash,
         execution: ExecutionModel::realistic(),
@@ -273,7 +284,7 @@ pub fn lab(
         model.as_ref(),
         &budget,
         &builder,
-        &mut |line| {
+        &|line: &str| {
             eprintln!("[${:.3}] {line}", budget.spent());
         },
     )?;

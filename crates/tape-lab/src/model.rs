@@ -6,10 +6,10 @@
 //! Responses API; [`Scripted`] replays canned answers for tests and dry
 //! runs.
 
-use std::cell::{Cell, RefCell};
 use std::collections::VecDeque;
 use std::fs;
 use std::path::Path;
+use std::sync::Mutex;
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
@@ -63,7 +63,7 @@ pub enum ModelError {
     Malformed(String),
 }
 
-pub trait Model {
+pub trait Model: Sync {
     fn name(&self) -> &str;
 
     /// The most a prompt could cost, used to check the budget before
@@ -91,6 +91,12 @@ impl Pricing {
                 cached_input: 0.01,
                 output: 0.50,
             }),
+            // developers.openai.com/api/docs/models/gpt-6-sol, September 2026.
+            "gpt-6-sol" => Some(Self {
+                input: 2.00,
+                cached_input: 0.20,
+                output: 10.00,
+            }),
             _ => None,
         }
     }
@@ -104,40 +110,58 @@ impl Pricing {
     }
 }
 
-/// A hard spending cap shared by every call in a run.
+/// A hard spending cap shared by every call in a run, including calls
+/// made at the same time from different threads.
 pub struct Budget {
     cap: f64,
-    spent: Cell<f64>,
+    /// Money spent, and money reserved for calls in flight.
+    state: Mutex<(f64, f64)>,
 }
 
 impl Budget {
     pub fn new(cap_usd: f64) -> Self {
         Self {
             cap: cap_usd,
-            spent: Cell::new(0.0),
+            state: Mutex::new((0.0, 0.0)),
         }
     }
 
+    fn lock(&self) -> std::sync::MutexGuard<'_, (f64, f64)> {
+        self.state
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
+
     pub fn spent(&self) -> f64 {
-        self.spent.get()
+        self.lock().0
     }
 
     pub fn cap(&self) -> f64 {
         self.cap
     }
 
-    /// Sends `prompt` if its worst-case cost fits in what's left, and
-    /// records what it actually cost.
+    /// Sends `prompt` if its worst-case cost fits in what's left after
+    /// other calls' reservations, and records what it actually cost.
     pub fn complete(&self, model: &dyn Model, prompt: &Prompt) -> Result<Completion, ModelError> {
-        if self.spent.get() + model.worst_case_cost(prompt) > self.cap {
-            return Err(ModelError::BudgetExhausted {
-                cap: self.cap,
-                spent: self.spent.get(),
-            });
+        let reserve = model.worst_case_cost(prompt);
+        {
+            let mut state = self.lock();
+            let (spent, reserved) = *state;
+            if spent + reserved + reserve > self.cap {
+                return Err(ModelError::BudgetExhausted {
+                    cap: self.cap,
+                    spent,
+                });
+            }
+            state.1 += reserve;
         }
-        let completion = model.complete(prompt)?;
-        self.spent.set(self.spent.get() + completion.cost_usd);
-        Ok(completion)
+        let result = model.complete(prompt);
+        let mut state = self.lock();
+        state.1 -= reserve;
+        if let Ok(completion) = &result {
+            state.0 += completion.cost_usd;
+        }
+        result
     }
 }
 
@@ -316,14 +340,14 @@ impl Model for OpenAi {
 /// Replays answers keyed by schema name, in order. For tests and for
 /// checking the pipeline end to end without spending anything.
 pub struct Scripted {
-    answers: RefCell<Vec<(&'static str, VecDeque<Value>)>>,
+    answers: Mutex<Vec<(&'static str, VecDeque<Value>)>>,
     cost_per_call: f64,
 }
 
 impl Scripted {
     pub fn new(cost_per_call: f64) -> Self {
         Self {
-            answers: RefCell::new(Vec::new()),
+            answers: Mutex::new(Vec::new()),
             cost_per_call,
         }
     }
@@ -336,7 +360,8 @@ impl Scripted {
         answers: impl IntoIterator<Item = Value>,
     ) -> Self {
         self.answers
-            .borrow_mut()
+            .lock()
+            .expect("script lock")
             .push((schema_name, answers.into_iter().collect()));
         self
     }
@@ -352,7 +377,7 @@ impl Model for Scripted {
     }
 
     fn complete(&self, prompt: &Prompt) -> Result<Completion, ModelError> {
-        let mut answers = self.answers.borrow_mut();
+        let mut answers = self.answers.lock().expect("script lock");
         let queue = answers
             .iter_mut()
             .find(|(name, _)| *name == prompt.schema_name)

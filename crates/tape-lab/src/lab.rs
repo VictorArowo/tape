@@ -22,6 +22,7 @@ use std::convert::Infallible;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -35,7 +36,7 @@ use tape_metrics::{Periods, deflated, period_returns};
 use tape_wasm::{Limits, Sandbox};
 
 use crate::build::{BuildError, GuestBuilder};
-use crate::model::{Budget, Model, ModelError};
+use crate::model::{Budget, Model, ModelError, Prompt};
 use crate::prompts::{self, MarketBrief};
 
 /// A contiguous stretch of bars, with a human-readable label.
@@ -57,6 +58,8 @@ pub struct Market {
 
 pub struct LabConfig {
     pub attempts: usize,
+    /// Attempts in flight at once.
+    pub workers: usize,
     /// Extra tries the coder gets after a rejected or failed build.
     pub max_repairs: usize,
     pub initial_cash: Money,
@@ -325,41 +328,68 @@ fn history_line(attempt: &Attempt) -> Option<String> {
     Some(format!("- {}: {} -> {outcome}", idea.name, idea.hypothesis))
 }
 
-/// Runs the whole experiment. `progress` receives one line per step.
-pub fn run(
-    config: &LabConfig,
-    market: &Market,
-    model: &dyn Model,
-    budget: &Budget,
-    builder: &GuestBuilder,
-    progress: &mut dyn FnMut(&str),
-) -> Result<Report, LabError> {
-    fs::create_dir_all(config.out_dir.join("code"))?;
-    fs::create_dir_all(config.out_dir.join("wasm"))?;
-    let mut log = File::create(config.out_dir.join("attempts.jsonl"))?;
+/// Why an attempt stopped short of an answer from the model.
+enum Halt {
+    /// The spending cap was reached: finish the run with what there is.
+    Budget(String),
+    /// Nothing will work (for example, a bad API key): abort the run.
+    Fatal(LabError),
+}
 
-    let desk = Desk::new(config, market);
-    let buy_hold_in_sample =
-        desk.buy_hold(&market.train.events, &market.train.from, &market.train.to)?;
-    let brief = MarketBrief {
-        symbol: market.instrument.symbol.clone(),
-        train_from: market.train.from.clone(),
-        train_to: market.train.to.clone(),
-        buy_hold_return: buy_hold_in_sample.total_return,
-        buy_hold_sharpe: buy_hold_in_sample.sharpe,
-        initial_cash: config.initial_cash.to_f64(),
-    };
-    let coder_system = prompts::coder_system();
+/// Everything an attempt needs, shared read-only by the workers.
+struct Job<'a> {
+    config: &'a LabConfig,
+    market: &'a Market,
+    model: &'a dyn Model,
+    budget: &'a Budget,
+    builder: &'a GuestBuilder,
+    desk: &'a Desk<'a>,
+    brief: MarketBrief,
+    coder_system: String,
+    buy_hold_in_sample: &'a Stats,
+}
 
-    let mut attempts: Vec<Attempt> = Vec::new();
-    let mut modules: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-    let mut daily_returns: BTreeMap<String, Vec<f64>> = BTreeMap::new();
-    let mut stopped = format!("finished all {} attempts", config.attempts);
+/// What a finished attempt adds to the run, besides its record.
+struct Ran {
+    wasm: Vec<u8>,
+    daily_returns: Vec<f64>,
+}
 
-    'attempts: for n in 1..=config.attempts {
-        let id = format!("s{n:03}");
+impl Job<'_> {
+    /// One model call. `Ok(None)` means this call failed but the run can go on.
+    fn ask(&self, attempt: &mut Attempt, prompt: &Prompt) -> Result<Option<Value>, Halt> {
+        match self.budget.complete(self.model, prompt) {
+            Ok(completion) => {
+                attempt.cost_usd += completion.cost_usd;
+                Ok(Some(completion.json))
+            }
+            Err(ModelError::BudgetExhausted { cap, spent }) => Err(Halt::Budget(format!(
+                "stopped at the ${cap:.2} budget after spending ${spent:.2}"
+            ))),
+            Err(
+                err @ (ModelError::MissingKey
+                | ModelError::Http {
+                    status: 401 | 403, ..
+                }),
+            ) => Err(Halt::Fatal(err.into())),
+            Err(err) => {
+                attempt.error = Some(err.to_string());
+                Ok(None)
+            }
+        }
+    }
+
+    /// Idea, code, build, in-sample backtest and critique for one attempt.
+    fn attempt(
+        &self,
+        id: &str,
+        history: &str,
+        say: &(dyn Fn(&str) + Sync),
+    ) -> Result<(Attempt, Option<Ran>), Halt> {
+        let io = |err: std::io::Error| Halt::Fatal(err.into());
+        let out = &self.config.out_dir;
         let mut attempt = Attempt {
-            id: id.clone(),
+            id: id.to_owned(),
             idea: None,
             status: Status::NoCode,
             builds: 0,
@@ -371,84 +401,45 @@ pub fn run(
             cost_usd: 0.0,
         };
 
-        // Every model call either succeeds, fails this attempt, or (if the
-        // budget is gone) ends the run.
-        macro_rules! ask {
-            ($prompt:expr) => {
-                match budget
-                    .complete(model, &$prompt)
-                    .map(|c| (c.json, c.cost_usd))
-                {
-                    Ok((json, cost)) => {
-                        attempt.cost_usd += cost;
-                        Some(json)
-                    }
-                    Err(ModelError::BudgetExhausted { cap, spent }) => {
-                        stopped =
-                            format!("stopped at the ${cap:.2} budget after spending ${spent:.2}");
-                        break 'attempts;
-                    }
-                    Err(
-                        err @ (ModelError::MissingKey
-                        | ModelError::Http {
-                            status: 401 | 403, ..
-                        }),
-                    ) => {
-                        return Err(err.into());
-                    }
-                    Err(err) => {
-                        attempt.error = Some(err.to_string());
-                        None
-                    }
-                }
-            };
-        }
-
-        let history: String = attempts
-            .iter()
-            .rev()
-            .take(40)
-            .rev()
-            .filter_map(history_line)
-            .collect::<Vec<_>>()
-            .join("\n");
-        let researched = ask!(prompts::researcher(&brief, &history));
-        let idea: Option<Idea> = researched.and_then(|json| serde_json::from_value(json).ok());
-        let Some(idea) = idea else {
-            progress(&format!("{id} no usable idea"));
-            record(&mut log, &attempt)?;
-            attempts.push(attempt);
-            continue;
+        let researched = self.ask(&mut attempt, &prompts::researcher(&self.brief, history))?;
+        let Some(idea) = researched.and_then(|json| serde_json::from_value::<Idea>(json).ok())
+        else {
+            say(&format!("{id} no usable idea"));
+            return Ok((attempt, None));
         };
         attempt.idea = Some(idea.clone());
-        progress(&format!("{id} idea: {}", idea.name));
+        say(&format!("{id} idea: {}", idea.name));
         let idea_json = serde_json::to_value(&idea).unwrap_or_default();
 
         // Write, check and compile, with a few chances to fix mistakes.
-        let mut wasm = None;
-        let mut prompt = prompts::coder(&coder_system, &idea_json);
-        for _ in 0..=config.max_repairs {
-            let Some(answer) = ask!(prompt) else { break };
+        let code_path = out.join("code").join(format!("{id}.rs"));
+        let mut built = None;
+        let mut prompt = prompts::coder(&self.coder_system, &idea_json);
+        for _ in 0..=self.config.max_repairs {
+            let Some(answer) = self.ask(&mut attempt, &prompt)? else {
+                break;
+            };
             let Some(code) = answer["code"].as_str().map(str::to_owned) else {
                 attempt.error = Some("coder returned no code".into());
                 break;
             };
             attempt.builds += 1;
-            fs::write(config.out_dir.join("code").join(format!("{id}.rs")), &code)?;
-            match builder.build(&code) {
+            fs::write(&code_path, &code).map_err(io)?;
+            match self.builder.build(&code) {
                 Ok(module) => {
-                    wasm = Some(module);
+                    built = Some((module, code));
                     attempt.error = None;
                     break;
                 }
                 Err(err @ (BuildError::Rejected(_) | BuildError::Compile(_))) => {
-                    progress(&format!(
+                    say(&format!(
                         "{id} build {}: {}",
                         attempt.builds,
                         first_line(&err.to_string())
                     ));
                     attempt.error = Some(err.to_string());
-                    prompt = prompts::repair(&coder_system, &idea_json, &code, &err.to_string());
+                    prompt =
+                        prompts::repair(&self.coder_system, &idea_json, &code, &err.to_string());
                 }
                 Err(err) => {
                     attempt.error = Some(err.to_string());
@@ -456,44 +447,35 @@ pub fn run(
                 }
             }
         }
-        let Some(wasm) = wasm else {
+        let Some((wasm, code)) = built else {
             attempt.status = if attempt.builds == 0 {
                 Status::NoCode
             } else {
                 Status::BuildFailed
             };
-            record(&mut log, &attempt)?;
-            attempts.push(attempt);
-            continue;
+            return Ok((attempt, None));
         };
-        fs::write(
-            config.out_dir.join("wasm").join(format!("{id}.wasm")),
-            &wasm,
-        )?;
+        fs::write(out.join("wasm").join(format!("{id}.wasm")), &wasm).map_err(io)?;
 
         // Backtest on the training period only.
-        let result = match desk.run_wasm(&wasm, &market.train.events) {
+        let result = match self.desk.run_wasm(&wasm, &self.market.train.events) {
             Ok(result) => result,
             Err(err) => {
-                progress(&format!("{id} failed at runtime: {}", first_line(&err)));
+                say(&format!("{id} failed at runtime: {}", first_line(&err)));
                 attempt.status = Status::RuntimeFailed;
                 attempt.error = Some(err);
-                record(&mut log, &attempt)?;
-                attempts.push(attempt);
-                continue;
+                return Ok((attempt, None));
             }
         };
-        let (stats, halves) = desk.in_sample(&result);
-        daily_returns.insert(
-            id.clone(),
-            period_returns(&result.equity, TimeDelta::from_days(1)),
-        );
-        modules.insert(id.clone(), wasm);
-        progress(&format!("{id} in-sample {}", stats.line()));
+        let (stats, halves) = self.desk.in_sample(&result);
+        say(&format!("{id} in-sample {}", stats.line()));
         attempt.in_sample = Some(stats.clone());
         attempt.halves = Some(halves.clone());
+        let ran = Ran {
+            wasm,
+            daily_returns: period_returns(&result.equity, TimeDelta::from_days(1)),
+        };
 
-        let code = fs::read_to_string(config.out_dir.join("code").join(format!("{id}.rs")))?;
         let evidence = format!(
             "Idea:\n{}\n\nCode:\n```rust\n{code}\n```\n\nBacktest results (training data only):\n\
              Whole period: {}\nFirst half: {}\nSecond half: {}\n\n\
@@ -502,15 +484,16 @@ pub fn run(
             stats.line(),
             halves[0].line(),
             halves[1].line(),
-            buy_hold_in_sample.line(),
+            self.buy_hold_in_sample.line(),
         );
-        let critique: Option<Critique> =
-            ask!(prompts::critic(&evidence)).and_then(|json| serde_json::from_value(json).ok());
+        let critique: Option<Critique> = self
+            .ask(&mut attempt, &prompts::critic(&evidence))?
+            .and_then(|json| serde_json::from_value(json).ok());
         attempt.status = match &critique {
             Some(c) if c.verdict == "pass" => Status::Passed,
             _ => Status::Rejected,
         };
-        progress(&format!(
+        say(&format!(
             "{id} critic: {}",
             critique.as_ref().map_or("no verdict".into(), |c| format!(
                 "{} ({})",
@@ -518,15 +501,144 @@ pub fn run(
             ))
         ));
         attempt.critique = critique;
-        record(&mut log, &attempt)?;
-        attempts.push(attempt);
+        Ok((attempt, Some(ran)))
     }
+}
 
+/// State the workers share while a run is in progress.
+struct Shared {
+    attempts: Vec<Attempt>,
+    modules: BTreeMap<String, Vec<u8>>,
+    daily_returns: BTreeMap<String, Vec<f64>>,
+    log: File,
+    next: usize,
+    stopped: Option<String>,
+    fatal: Option<LabError>,
+}
+
+impl Shared {
+    /// The last 40 finished attempts, for the researcher.
+    fn history(&self) -> String {
+        let skip = self.attempts.len().saturating_sub(40);
+        self.attempts[skip..]
+            .iter()
+            .filter_map(history_line)
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+}
+
+/// Runs the whole experiment. `progress` receives one line per step.
+///
+/// `config.workers` attempts run at once. Each researcher call sees every
+/// attempt that has finished so far; builds take turns, and the budget
+/// reserves each call's worst-case cost up front so parallel calls can't
+/// overshoot the cap together.
+pub fn run(
+    config: &LabConfig,
+    market: &Market,
+    model: &dyn Model,
+    budget: &Budget,
+    builder: &GuestBuilder,
+    progress: &(dyn Fn(&str) + Sync),
+) -> Result<Report, LabError> {
+    fs::create_dir_all(config.out_dir.join("code"))?;
+    fs::create_dir_all(config.out_dir.join("wasm"))?;
+    let log = File::create(config.out_dir.join("attempts.jsonl"))?;
+
+    let desk = Desk::new(config, market);
+    let buy_hold_in_sample =
+        desk.buy_hold(&market.train.events, &market.train.from, &market.train.to)?;
+    let job = Job {
+        config,
+        market,
+        model,
+        budget,
+        builder,
+        desk: &desk,
+        brief: MarketBrief {
+            symbol: market.instrument.symbol.clone(),
+            train_from: market.train.from.clone(),
+            train_to: market.train.to.clone(),
+            buy_hold_return: buy_hold_in_sample.total_return,
+            buy_hold_sharpe: buy_hold_in_sample.sharpe,
+            initial_cash: config.initial_cash.to_f64(),
+        },
+        coder_system: prompts::coder_system(),
+        buy_hold_in_sample: &buy_hold_in_sample,
+    };
+
+    let shared = Mutex::new(Shared {
+        attempts: Vec::new(),
+        modules: BTreeMap::new(),
+        daily_returns: BTreeMap::new(),
+        log,
+        next: 1,
+        stopped: None,
+        fatal: None,
+    });
+    let lock = || {
+        shared
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+    };
+
+    std::thread::scope(|scope| {
+        for _ in 0..config.workers.max(1) {
+            scope.spawn(|| {
+                loop {
+                    let (id, history) = {
+                        let mut state = lock();
+                        if state.stopped.is_some()
+                            || state.fatal.is_some()
+                            || state.next > config.attempts
+                        {
+                            break;
+                        }
+                        let id = format!("s{:03}", state.next);
+                        state.next += 1;
+                        (id, state.history())
+                    };
+                    match job.attempt(&id, &history, progress) {
+                        Ok((attempt, ran)) => {
+                            let mut state = lock();
+                            if let Some(ran) = ran {
+                                state.modules.insert(id.clone(), ran.wasm);
+                                state.daily_returns.insert(id, ran.daily_returns);
+                            }
+                            if let Err(err) = record(&mut state.log, &attempt) {
+                                state.fatal.get_or_insert(err.into());
+                            }
+                            state.attempts.push(attempt);
+                        }
+                        Err(Halt::Budget(reason)) => {
+                            lock().stopped.get_or_insert(reason);
+                        }
+                        Err(Halt::Fatal(err)) => {
+                            lock().fatal.get_or_insert(err);
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    let state = shared
+        .into_inner()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    if let Some(err) = state.fatal {
+        return Err(err);
+    }
+    let mut attempts = state.attempts;
+    attempts.sort_by(|a, b| a.id.cmp(&b.id));
+    let stopped = state
+        .stopped
+        .unwrap_or_else(|| format!("finished all {} attempts", config.attempts));
     finalize(
         &desk,
         attempts,
-        &modules,
-        &daily_returns,
+        &state.modules,
+        &state.daily_returns,
         buy_hold_in_sample,
         Spend {
             model: model.name().to_owned(),
@@ -555,7 +667,7 @@ fn finalize(
     daily_returns: &BTreeMap<String, Vec<f64>>,
     buy_hold_in_sample: Stats,
     spend: Spend,
-    progress: &mut dyn FnMut(&str),
+    progress: &(dyn Fn(&str) + Sync),
 ) -> Result<Report, LabError> {
     let (config, market) = (desk.config, desk.market);
     progress("running every strategy once on the held-out test period");
@@ -663,7 +775,7 @@ pub fn evaluate(
     config: &LabConfig,
     market: &Market,
     run_dir: &Path,
-    progress: &mut dyn FnMut(&str),
+    progress: &(dyn Fn(&str) + Sync),
 ) -> Result<Report, LabError> {
     let old: Report = serde_json::from_slice(&fs::read(run_dir.join("report.json"))?)
         .map_err(|err| LabError::Run(format!("unreadable report.json: {err}")))?;
