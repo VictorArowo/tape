@@ -1244,8 +1244,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "serde_json",
  "tape-core",
  "tape-data",
+ "tape-engine",
+ "tape-metrics",
+ "tape-strategies",
 ]
 
 [[package]]
@@ -1283,6 +1287,23 @@ dependencies = [
  "serde_json",
  "tape-core",
  "thiserror",
+]
+
+[[package]]
+name = "tape-metrics"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "tape-core",
+ "tape-engine",
+]
+
+[[package]]
+name = "tape-strategies"
+version = "0.1.0"
+dependencies = [
+ "tape-core",
+ "tape-engine",
 ]
 
 [[package]]

@@ -1,0 +1,15 @@
+[package]
+name = "tape-strategies"
+description = "Reference strategies for tape"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+tape-core = { version = "0.1.0", path = "../tape-core" }
+tape-engine = { version = "0.1.0", path = "../tape-engine" }
+
+[lints]
+workspace = true

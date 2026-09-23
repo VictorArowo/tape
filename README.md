@@ -18,8 +18,8 @@ Early. Research and paper trading only.
 | Milestone | |
 |---|---|
 | M0 Workspace, CI | done |
-| M1 Core types, market data loading | in progress |
-| M2 Engine, execution model, portfolio, metrics, CLI | |
+| M1 Core types, market data loading | done |
+| M2 Engine, execution model, portfolio, metrics, CLI | done |
 | M3 Honest vs naive backtest comparison | |
 | M4 WebAssembly strategy sandbox | |
 | M5 Agent research desk | |
@@ -29,9 +29,22 @@ Early. Research and paper trading only.
 
 ```
 crates/
-  tape-core   fixed-point numbers, timestamps, market events, orders
-  tape-data   Binance public data, checksummed downloads, Parquet storage, time-ordered merging
+  tape-core        fixed-point numbers, timestamps, market events, orders
+  tape-data        Binance public data, checksummed downloads, Parquet storage, time-ordered merging
+  tape-engine      event loop, simulated exchange, portfolio accounting
+  tape-metrics     returns, Sharpe, Sortino, drawdowns
+  tape-strategies  reference strategies (buy and hold, moving-average crossover)
+  tape-cli         the `tape` command
 ```
+
+## Try it
+
+```sh
+cargo run --release -p tape-cli -- data fetch BTCUSDT --from 2024-01
+cargo run --release -p tape-cli -- run sma-cross --from 2024-01 --fast 30 --slow 120
+```
+
+The second command runs the same strategy twice, once with the naive assumptions most quick backtests make (instant, free, unlimited fills) and once with latency, fees, slippage and volume limits. On January 2024 BTC/USDT one-minute bars, that moving-average crossover makes +12.4% under the first and loses 35.2% under the second.
 
 ## Development
 

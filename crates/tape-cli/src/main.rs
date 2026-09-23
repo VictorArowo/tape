@@ -1,3 +1,5 @@
+mod run;
+
 use std::path::PathBuf;
 
 use anyhow::{Context, Result, bail};
@@ -26,6 +28,8 @@ enum Command {
     /// Download and inspect market data.
     #[command(subcommand)]
     Data(DataCommand),
+    /// Backtest a reference strategy on stored data.
+    Run(run::RunArgs),
 }
 
 #[derive(Subcommand)]
@@ -131,6 +135,11 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Command::Data(DataCommand::Fetch(args)) => fetch(cli.data_dir, args),
+        Command::Run(args) => {
+            let from = parse_month(args.from())?;
+            let to = args.to().map(parse_month).transpose()?.unwrap_or(from);
+            run::run(&cli.data_dir, args, months(from, to)?)
+        }
         Command::Data(DataCommand::Info { paths }) => {
             for path in paths {
                 print_info(&store::file_info(&path)?);

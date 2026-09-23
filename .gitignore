@@ -2,3 +2,4 @@
 /data
 *.parquet
 .DS_Store
+.claude/
