@@ -262,6 +262,98 @@ export function scatterChart(host, { points, groups, xLabel, yLabel, format, dia
   draw();
 }
 
+/**
+ * Horizontal bars growing left or right from zero, one row per item, in the
+ * order given. Each row: { label, value, color, detail: [{label, value}] }.
+ * An optional reference line marks a benchmark value.
+ */
+export function barChart(host, { rows, format, tickFormat = format, reference, ariaLabel }) {
+  host.classList.add("chart");
+  host.replaceChildren();
+  const plot = document.createElement("div");
+  plot.className = "chart-plot";
+  host.appendChild(plot);
+  const tip = makeTooltip(plot);
+
+  const measure = document.createElement("canvas").getContext("2d");
+  const longestLabel = () => {
+    measure.font = `14px ${getComputedStyle(host).fontFamily}`;
+    return Math.max(...rows.map((r) => measure.measureText(r.label).width));
+  };
+
+  const values = rows.map((r) => r.value);
+  const lo = Math.min(0, ...values);
+  const hi = Math.max(0, ...values, reference?.value ?? 0);
+
+  function draw() {
+    plot.querySelector("svg")?.remove();
+    const width = plot.clientWidth;
+    if (!width) return;
+    const narrow = width < 620;
+    const ticks = niceTicks(lo, hi, narrow ? 3 : 5);
+    const [min, max] = [ticks[0], ticks.at(-1)];
+    const bar = 22;
+    const labelW = narrow ? 0 : Math.min(Math.ceil(longestLabel()) + 16, width * 0.42);
+    const rowH = narrow ? 58 : 44;
+    // Room on both sides for value labels at the bar tips.
+    const m = { top: reference ? 26 : 8, right: 64, bottom: 28, left: labelW + (lo < 0 ? 60 : 8) };
+    const w = width - m.left - m.right;
+    const height = m.top + rows.length * rowH + m.bottom;
+    const sx = (v) => m.left + ((v - min) / (max - min)) * w;
+
+    const svg = el("svg", { width, height, role: "img", "aria-label": ariaLabel, class: "chart-svg" });
+    plot.prepend(svg);
+
+    for (const t of ticks) {
+      el("line", { x1: sx(t), x2: sx(t), y1: m.top, y2: height - m.bottom, class: t === 0 ? "chart-baseline" : "chart-grid" }, svg);
+      el("text", { x: sx(t), y: height - 8, "text-anchor": "middle", class: "chart-axis" }, svg).textContent = tickFormat(t);
+    }
+
+    rows.forEach((row, i) => {
+      const top = m.top + i * rowH;
+      const barY = narrow ? top + 26 : top + (rowH - bar) / 2;
+      const labelY = narrow ? top + 16 : barY + bar / 2 + 4;
+      const labelX = narrow ? 0 : m.left - 16 - (lo < 0 ? 52 : 0);
+      el("text", { x: labelX, y: labelY, "text-anchor": narrow ? "start" : "end", class: "chart-row-label" }, svg).textContent = row.label;
+
+      const x0 = sx(0);
+      const x1 = sx(row.value);
+      const left = Math.min(x0, x1);
+      const len = Math.abs(x1 - x0);
+      const r = Math.min(4, len);
+      // Square at the baseline, rounded at the data end.
+      const d =
+        row.value >= 0
+          ? `M${left},${barY}h${len - r}a${r},${r} 0 0 1 ${r},${r}v${bar - 2 * r}a${r},${r} 0 0 1 ${-r},${r}h${-(len - r)}z`
+          : `M${x0},${barY}h${-(len - r)}a${r},${r} 0 0 0 ${-r},${r}v${bar - 2 * r}a${r},${r} 0 0 0 ${r},${r}h${len - r}z`;
+      const g = el("g", { class: "chart-bar", tabindex: 0, role: "img", "aria-label": `${row.label}: ${format(row.value)}` }, svg);
+      el("rect", { x: m.left, y: top, width: w, height: rowH, class: "chart-hit" }, g);
+      el("path", { d, fill: row.color }, g);
+      const valueX = row.value >= 0 ? x1 + 8 : x1 - 8;
+      el("text", { x: valueX, y: barY + bar / 2 + 4, "text-anchor": row.value >= 0 ? "start" : "end", class: "chart-value" }, g).textContent = format(row.value);
+
+      const show = () =>
+        tip.show(Math.max(x0, x1), barY, row.label, [
+          { label: "", value: format(row.value), color: row.color },
+          ...(row.detail ?? []).map((d) => ({ label: d.label, value: d.value, color: "transparent" })),
+        ]);
+      g.addEventListener("pointerenter", show);
+      g.addEventListener("focus", show);
+      g.addEventListener("pointerleave", () => tip.hide());
+      g.addEventListener("blur", () => tip.hide());
+    });
+
+    if (reference) {
+      const x = sx(reference.value);
+      el("line", { x1: x, x2: x, y1: m.top - 6, y2: height - m.bottom, class: "chart-ref" }, svg);
+      el("text", { x, y: m.top - 12, "text-anchor": "middle", class: "chart-ref-label" }, svg).textContent = reference.label;
+    }
+  }
+
+  new ResizeObserver(draw).observe(plot);
+  draw();
+}
+
 /** A <details> table of the chart's data, so nothing is hover-only. */
 export function tableView(host, { summary, columns, rows }) {
   const details = document.createElement("details");

@@ -2,7 +2,7 @@
 // marked `placeholder`, its section shows a visible flag so fake numbers
 // can't go live unnoticed.
 
-import { lineChart, scatterChart, tableView } from "./charts.js";
+import { barChart, lineChart, scatterChart, tableView } from "./charts.js";
 import { colors, fmt } from "./format.js";
 
 function bind(section, values) {
@@ -35,8 +35,9 @@ async function honestVsNaive() {
     to: fmt.date(data.to),
     initialCash: fmt.money(data.initialCash),
   };
-  for (const key of ["naive", "tape"]) {
+  for (const key of ["naive", "tape", "buyHold"]) {
     const s = data.stats[key];
+    if (!s) continue;
     Object.assign(values, {
       [`${key}.finalEquity`]: fmt.money(s.finalEquity),
       [`${key}.totalReturn`]: fmt.percent(s.totalReturn),
@@ -46,7 +47,13 @@ async function honestVsNaive() {
       [`${key}.feesPaid`]: fmt.money(s.feesPaid),
     });
   }
+  const tape = data.stats.tape;
+  values.verdict = `The strategy's signals are the same in both runs. What changes is the cost of acting on them: ${fmt.money(tape.feesPaid)} in fees across ${fmt.count(tape.trades)} trades.`;
+  if (data.stats.buyHold) {
+    values.verdict += ` Simply holding for the whole period returned ${fmt.percent(data.stats.buyHold.totalReturn)}.`;
+  }
   bind(section, values);
+  if (data.ladder?.length) ladder(section, data);
 
   const host = section.querySelector("#compare-chart");
   lineChart(host, {
@@ -67,6 +74,64 @@ async function honestVsNaive() {
     columns: ["Date", "Naive backtest", "tape"],
     rows: monthly.map(([d, i]) => [fmt.date(d), fmt.money(data.series.naive[i]), fmt.money(data.series.tape[i])]),
   });
+}
+
+const LADDER_LABELS = {
+  notebook: "Notebook backtest that peeks one bar ahead",
+  naive: "Event-driven, but free and instant",
+  tape: "+ volume limits: tape",
+};
+
+function ladder(section, data) {
+  const container = section.querySelector("[data-ladder]");
+  const rows = data.ladder.map((step) => ({
+    key: step.key,
+    label: LADDER_LABELS[step.key] ?? step.label,
+    value: step.stats.totalReturn,
+    color: step.key === "tape" ? colors.tape : step.key === "naive" ? colors.naive : colors.neutral,
+    detail: [
+      { label: "fees", value: fmt.money(step.stats.feesPaid) },
+      ...(step.stats.trades ? [{ label: "trades", value: fmt.count(step.stats.trades) }] : []),
+      ...(step.runHash ? [{ label: "run hash", value: step.runHash }] : []),
+    ],
+  }));
+  const host = container.querySelector("#ladder-chart");
+  container.hidden = false;
+  const buyHold = data.stats.buyHold;
+  barChart(host, {
+    rows,
+    format: (v) => fmt.percent(v),
+    tickFormat: (v) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.round(Math.abs(v) * 100)}%`,
+    reference: buyHold ? { value: buyHold.totalReturn, label: `Buy and hold ${fmt.percent(buyHold.totalReturn)}` } : null,
+    ariaLabel: `Total return as each assumption is added: ${rows.map((r) => `${r.label} ${fmt.percent(r.value)}`).join("; ")}.`,
+  });
+  tableView(host, {
+    summary: "Show each step as a table",
+    columns: ["Step", "Return", "Fees", "Trades", "Run hash"],
+    rows: data.ladder.map((step) => [
+      LADDER_LABELS[step.key] ?? step.label,
+      fmt.percent(step.stats.totalReturn),
+      fmt.money(step.stats.feesPaid),
+      step.stats.trades ? fmt.count(step.stats.trades) : "",
+      step.runHash ?? "",
+    ]),
+  });
+
+  // Say which step did the damage and which made no difference, from the data.
+  const steps = data.ladder.slice(1).map((step, i) => ({
+    label: step.label.replace(/^\+\s*/, ""),
+    before: data.ladder[i].stats.totalReturn,
+    after: step.stats.totalReturn,
+  }));
+  const biggest = steps.reduce((a, b) => (b.before - b.after > a.before - a.after ? b : a));
+  const flat = steps.filter((s) => Math.abs(s.after - s.before) < 0.0005);
+  let note = `The biggest single change is adding ${biggest.label}, which takes the result from ${fmt.percent(biggest.before)} to ${fmt.percent(biggest.after)}.`;
+  if (flat.length) {
+    const names = flat.map((s) => s.label.replace(/\s*\(.*\)$/, ""));
+    const list = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0];
+    note += ` Adding ${list} ${names.length > 1 ? "make" : "makes"} no measurable difference here.`;
+  }
+  bind(container, { ladderNote: note });
 }
 
 async function experiment() {

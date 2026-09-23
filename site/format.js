@@ -29,4 +29,6 @@ export const fmt = {
 export const colors = {
   tape: "#b08a1e",
   naive: "#6d7be4",
+  /** De-emphasized marks: everything that isn't the story. */
+  neutral: "#737487",
 };

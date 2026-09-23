@@ -136,16 +136,23 @@
         <div class="chart-host" id="compare-chart"></div>
         <table class="compare stats-table">
           <caption>Results</caption>
-          <thead><tr><th scope="col"></th><th scope="col">Naive backtest</th><th scope="col">tape</th></tr></thead>
+          <thead><tr><th scope="col"></th><th scope="col">Naive backtest</th><th scope="col">tape</th><th scope="col">Buy and hold</th></tr></thead>
           <tbody>
-            <tr><th scope="row">Total return</th><td class="num" data-bind="naive.totalReturn"></td><td class="num" data-bind="tape.totalReturn"></td></tr>
-            <tr><th scope="row">Sharpe ratio</th><td class="num" data-bind="naive.sharpe"></td><td class="num" data-bind="tape.sharpe"></td></tr>
-            <tr><th scope="row">Worst drawdown</th><td class="num" data-bind="naive.maxDrawdown"></td><td class="num" data-bind="tape.maxDrawdown"></td></tr>
-            <tr><th scope="row">Trades</th><td class="num" data-bind="naive.trades"></td><td class="num" data-bind="tape.trades"></td></tr>
-            <tr><th scope="row">Fees paid</th><td class="num" data-bind="naive.feesPaid"></td><td class="num" data-bind="tape.feesPaid"></td></tr>
+            <tr><th scope="row">Total return</th><td class="num" data-bind="naive.totalReturn"></td><td class="num" data-bind="tape.totalReturn"></td><td class="num" data-bind="buyHold.totalReturn"></td></tr>
+            <tr><th scope="row">Sharpe ratio</th><td class="num" data-bind="naive.sharpe"></td><td class="num" data-bind="tape.sharpe"></td><td class="num" data-bind="buyHold.sharpe"></td></tr>
+            <tr><th scope="row">Worst drawdown</th><td class="num" data-bind="naive.maxDrawdown"></td><td class="num" data-bind="tape.maxDrawdown"></td><td class="num" data-bind="buyHold.maxDrawdown"></td></tr>
+            <tr><th scope="row">Trades</th><td class="num" data-bind="naive.trades"></td><td class="num" data-bind="tape.trades"></td><td class="num" data-bind="buyHold.trades"></td></tr>
+            <tr><th scope="row">Fees paid</th><td class="num" data-bind="naive.feesPaid"></td><td class="num" data-bind="tape.feesPaid"></td><td class="num" data-bind="buyHold.feesPaid"></td></tr>
           </tbody>
         </table>
-        <p class="note">Nothing about the strategy changed. Same signals, same trades. Only the execution did.</p>
+        <p class="note" data-bind="verdict"></p>
+
+        <div data-ladder hidden>
+          <h3 class="chart-title">Where the returns went</h3>
+          <p class="chart-sub">The same backtest again, adding one honest assumption at a time.</p>
+          <div class="chart-host" id="ladder-chart"></div>
+          <p class="note" data-bind="ladderNote"></p>
+        </div>
       </div>
     </section>
 
