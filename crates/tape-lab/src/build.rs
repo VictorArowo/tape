@@ -97,6 +97,34 @@ pub fn check_source(source: &str) -> Result<(), String> {
     Ok(())
 }
 
+/// `$CARGO` when running under cargo, then `cargo` on the PATH, then the
+/// usual install locations (the PATH of a background shell may not have it).
+fn find_cargo() -> PathBuf {
+    if let Some(cargo) = std::env::var_os("CARGO") {
+        return cargo.into();
+    }
+    let on_path = Command::new("cargo")
+        .arg("--version")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .is_ok_and(|status| status.success());
+    if on_path {
+        return "cargo".into();
+    }
+    let home = std::env::var_os("HOME")
+        .map(PathBuf::from)
+        .unwrap_or_default();
+    [
+        home.join(".cargo/bin/cargo"),
+        PathBuf::from("/opt/homebrew/opt/rustup/bin/cargo"),
+        PathBuf::from("/usr/local/bin/cargo"),
+    ]
+    .into_iter()
+    .find(|path| path.exists())
+    .unwrap_or_else(|| "cargo".into())
+}
+
 /// Compiles strategies in a fixed scratch crate, reusing one target
 /// directory so the SDK is built once.
 pub struct GuestBuilder {
@@ -141,9 +169,33 @@ debug = false
         Ok(Self {
             crate_dir,
             target_dir: workspace_root.join("target/lab/build"),
-            cargo: std::env::var_os("CARGO").map_or_else(|| "cargo".into(), PathBuf::from),
+            cargo: find_cargo(),
             timeout: Duration::from_secs(180),
         })
+    }
+
+    /// The PATH for cargo, with cargo's own directory first so it can find
+    /// `rustc` next to it even from a shell that doesn't have Rust set up.
+    fn child_path(&self) -> std::ffi::OsString {
+        let inherited = std::env::var_os("PATH").unwrap_or_default();
+        let Some(dir) = self
+            .cargo
+            .parent()
+            .filter(|dir| !dir.as_os_str().is_empty())
+        else {
+            return inherited;
+        };
+        let mut paths = vec![dir.to_path_buf()];
+        paths.extend(std::env::split_paths(&inherited));
+        std::env::join_paths(paths).unwrap_or(inherited)
+    }
+
+    /// Builds a known-good strategy. Run before spending anything on a
+    /// model, so a missing toolchain or target fails the run immediately
+    /// instead of making every attempt look like the model's fault.
+    pub fn preflight(&self) -> Result<(), BuildError> {
+        const KNOWN_GOOD: &str = include_str!("../../../guests/sma-cross/src/lib.rs");
+        self.build(KNOWN_GOOD).map(|_| ())
     }
 
     /// Checks and compiles `source`, returning the WebAssembly module.
@@ -179,6 +231,7 @@ debug = false
             .arg(self.crate_dir.join("Cargo.toml"))
             .arg("--target-dir")
             .arg(&self.target_dir)
+            .env("PATH", self.child_path())
             .env("CARGO_TERM_COLOR", "never")
             .stdout(Stdio::null())
             .stderr(Stdio::piped())

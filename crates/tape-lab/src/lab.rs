@@ -441,6 +441,11 @@ impl Job<'_> {
                     prompt =
                         prompts::repair(&self.coder_system, &idea_json, &code, &err.to_string());
                 }
+                // The toolchain itself failed, not the model's code: every
+                // other attempt would fail the same way.
+                Err(err @ BuildError::Io(_)) => {
+                    return Err(Halt::Fatal(LabError::Run(err.to_string())));
+                }
                 Err(err) => {
                     attempt.error = Some(err.to_string());
                     break;
@@ -453,6 +458,11 @@ impl Job<'_> {
             } else {
                 Status::BuildFailed
             };
+            say(&format!(
+                "{id} gave up after {} builds: {}",
+                attempt.builds,
+                first_line(attempt.error.as_deref().unwrap_or("no code"))
+            ));
             return Ok((attempt, None));
         };
         fs::write(out.join("wasm").join(format!("{id}.wasm")), &wasm).map_err(io)?;
@@ -542,6 +552,10 @@ pub fn run(
     builder: &GuestBuilder,
     progress: &(dyn Fn(&str) + Sync),
 ) -> Result<Report, LabError> {
+    progress("checking the build toolchain");
+    builder
+        .preflight()
+        .map_err(|err| LabError::Run(format!("the build toolchain doesn't work: {err}")))?;
     fs::create_dir_all(config.out_dir.join("code"))?;
     fs::create_dir_all(config.out_dir.join("wasm"))?;
     let log = File::create(config.out_dir.join("attempts.jsonl"))?;
