@@ -1,0 +1,18 @@
+[package]
+name = "tape-core"
+description = "Core types for tape: fixed-point numbers, timestamps, market events and orders"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true
