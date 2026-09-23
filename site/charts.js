@@ -192,14 +192,27 @@ export function scatterChart(host, { points, groups, xLabel, yLabel, format, dia
   host.appendChild(plot);
   const tip = makeTooltip(plot);
 
-  const xs = points.map((p) => p.x);
-  const ys = points.map((p) => p.y);
-  const xTicks = niceTicks(Math.min(...xs, vline?.value ?? Infinity), Math.max(...xs, vline?.value ?? -Infinity), 6);
-  const yTicks = niceTicks(Math.min(...ys, hline?.value ?? Infinity), Math.max(...ys, hline?.value ?? -Infinity), 5);
+  // Keep the axes around the bulk of the data: a point more than half the
+  // central-90% range beyond it is pinned to the edge with an arrow, instead
+  // of squashing everything else into a corner. Tooltips keep the true value.
+  const robust = (values) => {
+    const v = [...values].sort((a, b) => a - b);
+    const q = (p) => v[Math.round(p * (v.length - 1))];
+    const spread = q(0.95) - q(0.05) || 1;
+    const inliers = v.filter((x) => x >= q(0.05) - spread / 2 && x <= q(0.95) + spread / 2);
+    return inliers.length >= 3 ? [inliers[0], inliers.at(-1)] : [v[0], v.at(-1)];
+  };
+  const [xLo, xHi] = robust(points.map((p) => p.x));
+  const [yLo, yHi] = robust(points.map((p) => p.y));
+  const xTicks = niceTicks(Math.min(xLo, vline?.value ?? Infinity), Math.max(xHi, vline?.value ?? -Infinity), 6);
+  const yTicks = niceTicks(Math.min(yLo, hline?.value ?? Infinity), Math.max(yHi, hline?.value ?? -Infinity), 5);
   const [xMin, xMax] = [xTicks[0], xTicks.at(-1)];
   const [yMin, yMax] = [yTicks[0], yTicks.at(-1)];
   const colorOf = Object.fromEntries(groups.map((g) => [g.key, g.color]));
   const hollow = new Set(groups.filter((g) => g.hollow).map((g) => g.key));
+  const clampX = (v) => Math.min(xMax, Math.max(xMin, v));
+  const clampY = (v) => Math.min(yMax, Math.max(yMin, v));
+  const pinned = points.filter((p) => p.x !== clampX(p.x) || p.y !== clampY(p.y));
   // De-emphasized (hollow) points draw first, underneath the rest.
   const ordered = [...points].sort((a, b) => Number(hollow.has(b.group)) - Number(hollow.has(a.group)));
 
@@ -260,14 +273,21 @@ export function scatterChart(host, { points, groups, xLabel, yLabel, format, dia
 
     for (const p of ordered) {
       const g = el("g", { class: "chart-point", tabindex: 0, role: "img", "aria-label": `${p.label}: ${xLabel} ${format(p.x)}, ${yLabel} ${format(p.y)}` }, svg);
-      el("circle", { cx: sx(p.x), cy: sy(p.y), r: 12, class: "chart-hit" }, g);
-      if (hollow.has(p.group)) {
-        el("circle", { cx: sx(p.x), cy: sy(p.y), r: 4.5, fill: "none", stroke: colorOf[p.group], "stroke-width": 1.5, class: "chart-ring" }, g);
+      const [cx, cy] = [sx(clampX(p.x)), sy(clampY(p.y))];
+      el("circle", { cx, cy, r: 12, class: "chart-hit" }, g);
+      if (p.x !== clampX(p.x) || p.y !== clampY(p.y)) {
+        // An arrow at the edge, pointing the way the real value lies.
+        const dx = Math.sign(p.x - clampX(p.x));
+        const dy = -Math.sign(p.y - clampY(p.y));
+        const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+        el("path", { d: "M6,0 L-4,-5 L-4,5 Z", transform: `translate(${cx},${cy}) rotate(${angle})`, fill: hollow.has(p.group) ? "none" : colorOf[p.group], stroke: colorOf[p.group], "stroke-width": 1.5, class: "chart-pin" }, g);
+      } else if (hollow.has(p.group)) {
+        el("circle", { cx, cy, r: 4.5, fill: "none", stroke: colorOf[p.group], "stroke-width": 1.5, class: "chart-ring" }, g);
       } else {
-        el("circle", { cx: sx(p.x), cy: sy(p.y), r: 5, fill: colorOf[p.group], class: "chart-dot" }, g);
+        el("circle", { cx, cy, r: 5, fill: colorOf[p.group], class: "chart-dot" }, g);
       }
       const show = () =>
-        tip.show(sx(p.x), sy(p.y), p.label, [
+        tip.show(cx, cy, p.label, [
           { label: xLabel, value: format(p.x), color: colorOf[p.group] },
           { label: yLabel, value: format(p.y), color: colorOf[p.group] },
         ]);
@@ -280,6 +300,7 @@ export function scatterChart(host, { points, groups, xLabel, yLabel, format, dia
 
   new ResizeObserver(draw).observe(plot);
   draw();
+  return { pinned: pinned.length };
 }
 
 /**

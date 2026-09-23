@@ -12,9 +12,27 @@ function bind(section, values) {
   }
 }
 
-function flag(section, placeholder) {
+// Placeholder data and small pilot runs both get a visible badge.
+function flag(section, data) {
   const badge = section.querySelector(".placeholder-flag");
-  if (badge) badge.hidden = !placeholder;
+  if (!badge) return;
+  const text = data.placeholder ? "Placeholder data" : data.pilot ? `Pilot run: ${data.funnel?.proposed ?? "a few"} ideas` : null;
+  badge.hidden = !text;
+  if (text) badge.textContent = text;
+}
+
+function correlation(points) {
+  const n = points.length;
+  if (n < 3) return null;
+  const mx = points.reduce((a, p) => a + p.x, 0) / n;
+  const my = points.reduce((a, p) => a + p.y, 0) / n;
+  let sxy = 0, sxx = 0, syy = 0;
+  for (const p of points) {
+    sxy += (p.x - mx) * (p.y - my);
+    sxx += (p.x - mx) ** 2;
+    syy += (p.y - my) ** 2;
+  }
+  return sxx && syy ? sxy / Math.sqrt(sxx * syy) : null;
 }
 
 async function load(name) {
@@ -26,7 +44,7 @@ async function load(name) {
 async function honestVsNaive() {
   const section = document.querySelector('[data-result="honest-vs-naive"]');
   const data = await load("honest-vs-naive");
-  flag(section, data.placeholder);
+  flag(section, data);
 
   const values = {
     strategy: data.strategy.charAt(0).toLowerCase() + data.strategy.slice(1),
@@ -151,7 +169,7 @@ function luckNote(ds) {
 async function experiment() {
   const section = document.querySelector('[data-result="experiment"]');
   const data = await load("experiment");
-  flag(section, data.placeholder);
+  flag(section, data);
 
   const range = (r) => `${fmt.date(r.from)} to ${fmt.date(r.to)}`;
   const f = data.funnel;
@@ -177,12 +195,14 @@ async function experiment() {
     { key: "rejected", label: "Rejected by the critic", color: colors.rejected, hollow: true },
   ].filter((g) => plottable.some((s) => groupOf(s) === g.key));
 
+  const r = correlation(plottable.map((s) => ({ x: s.inSampleSharpe, y: s.outOfSampleSharpe })));
   values.scatterSub =
-    `Each dot is one of ${fmt.count(plottable.length)} strategies that ran. If backtests told the truth, dots would sit on the diagonal.` +
-    (unplotted > 0 ? ` ${fmt.count(unplotted)} with no Sharpe ratio (a flat equity curve) aren't shown.` : "");
+    `Each dot is a strategy that ran. If backtests told the truth, dots would sit on the diagonal.` +
+    (r != null ? ` The correlation between training and final-exam scores is ${fmt.ratio(r)}.` : "") +
+    (unplotted > 0 ? ` Not shown: ${fmt.count(unplotted)} ${unplotted === 1 ? "strategy" : "strategies"} without both scores.` : "");
 
   const host = section.querySelector("#experiment-chart");
-  scatterChart(host, {
+  const { pinned } = scatterChart(host, {
     points: plottable.map((s) => ({ x: s.inSampleSharpe, y: s.outOfSampleSharpe, label: s.name, group: groupOf(s) })),
     groups,
     xLabel: "Sharpe ratio in training",
@@ -196,6 +216,9 @@ async function experiment() {
         : null,
     ariaLabel: `Scatter plot of ${plottable.length} strategies. ${f.beatBuyHold} passed the critic and beat buy-and-hold on unseen data.`,
   });
+  if (pinned > 0) {
+    values.scatterSub += ` ${pinned === 1 ? "One extreme result is" : `${fmt.count(pinned)} extreme results are`} pinned to the edge; hover for the real value.`;
+  }
   const statusLabel = { passed: "Passed", rejected: "Rejected", runtime_failed: "Crashed" };
   tableView(host, {
     summary: "Show every strategy as a table",
@@ -208,7 +231,7 @@ async function experiment() {
     section.querySelector("[data-luck]").hidden = false;
     Object.assign(values, {
       "luck.best": fmt.ratio(ds.bestInSampleSharpe),
-      "luck.bestLabel": `best Sharpe ratio in training (${ds.best})`,
+      "luck.bestLabel": `best Sharpe ratio in training (${pool.find((s) => s.id === ds.best)?.name ?? ds.best})`,
       "luck.threshold": fmt.ratio(ds.luckThresholdSharpe),
       "luck.thresholdLabel": `the best of ${fmt.count(ds.trials)} skill-less tries, by luck alone`,
       "luck.probability": ds.probability == null ? "Not enough data" : `${Math.round(ds.probability * 100)}%`,
