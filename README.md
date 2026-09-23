@@ -30,6 +30,7 @@ Early. Research and paper trading only.
 ```
 crates/
   tape-core   fixed-point numbers, timestamps, market events, orders
+  tape-data   Binance public data, checksummed downloads, Parquet storage, time-ordered merging
 ```
 
 ## Development
