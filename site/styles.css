@@ -13,6 +13,8 @@
 
   --sans: "Archivo", system-ui, sans-serif;
   --mono: "Cutive Mono", ui-monospace, monospace;
+  /* Code needs a legible monospace, not the tape's typewriter face. */
+  --code: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
   --gutter: clamp(16px, 5vw, 64px);
   --measure: 62ch;
@@ -225,6 +227,78 @@ h2 { font-size: clamp(2.25rem, 5.5vw, 3.75rem); max-width: 18ch; }
 .compare td:last-child { color: var(--text); }
 .compare td:nth-child(2) { color: var(--muted); }
 .note { margin-top: 1.5rem; color: var(--muted); }
+
+/* Custom strategy editor */
+.custom { margin-top: 1.5rem; }
+.custom[hidden] { display: none; }
+.custom-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem 1.5rem; }
+.custom-note { flex: 1 1 22rem; max-width: 56ch; font-size: 0.875rem; color: var(--muted); }
+.custom-note code, .editor-help code { font-family: var(--code); font-size: 0.8125rem; color: var(--text); }
+.editor {
+  --code-line: 1.6;
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  height: clamp(18rem, 50vh, 28rem);
+  background: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.editor:focus-within { border-color: var(--muted); }
+.editor-gutter {
+  overflow: hidden;
+  padding: 0.85rem 0.6rem 0.85rem 0.9rem;
+  border-right: 1px solid var(--rule);
+  font: 13px/var(--code-line) var(--code);
+  color: var(--muted);
+  opacity: 0.7;
+  text-align: right;
+  user-select: none;
+}
+.editor-gutter span { display: block; min-width: 2ch; }
+.editor-gutter span.is-error { color: var(--loss); opacity: 1; font-weight: 700; }
+.editor textarea {
+  resize: none;
+  border: 0;
+  outline: none;
+  padding: 0.85rem 1rem;
+  background: transparent;
+  color: var(--text);
+  font: 13px/var(--code-line) var(--code);
+  tab-size: 2;
+  white-space: pre;
+  overflow: auto;
+}
+.editor-help { margin-top: 0.5rem; font-size: 0.8125rem; color: var(--muted); }
+.editor-error {
+  margin-top: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border-left: 2px solid var(--loss);
+  background: color-mix(in srgb, var(--loss) 10%, transparent);
+  font: 13px/1.5 var(--code);
+  color: var(--text);
+  white-space: pre-wrap;
+}
+.editor-error[hidden] { display: none; }
+.button:disabled { opacity: 0.55; cursor: progress; }
+
+.console { margin-top: 1.5rem; }
+.console[hidden] { display: none; }
+.console-title { font-size: 1rem; font-weight: 600; }
+.console pre {
+  margin-top: 0.5rem;
+  max-height: 14rem;
+  overflow: auto;
+  padding: 0.85rem 1rem;
+  background: var(--ink-raised);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  font: 13px/1.55 var(--code);
+  color: var(--text);
+  white-space: pre-wrap;
+}
+.console pre.is-empty { color: var(--muted); }
 
 /* Experiment */
 .steps {

@@ -33,12 +33,17 @@ The results sections read JSON from `data/results/`:
 ## Demo engine
 
 The "Run a backtest" demo runs tape's real engine, compiled to WebAssembly, in `engine/`:
-`tape.wasm`, the `tape-engine.js` loader, and one data file per month of 2024 in
-`engine/data/` (loaded on first use). Rebuild it from the repo root with:
+`tape.wasm`, the `tape-engine.js` loader, `tape-worker.js` (every run happens in a Web
+Worker, stopped after 10 seconds), `strategies.js` (the editor's example strategies), and
+one data file per month of 2024 in `engine/data/` (loaded on first use). The four code
+files must be copied together. Rebuild them from the repo root with:
 
 ```sh
 ./web/build.sh site/engine
 ```
+
+Visitors' own strategies ("Write your own") only run from the editor, when they press Run.
+Never load strategy code from a URL and run it automatically.
 
 `engine/check.html` is a self-test page the build writes; it's gitignored so it isn't deployed.
 

@@ -171,7 +171,7 @@
         <div class="section-head">
           <h2>Run a backtest</h2>
         </div>
-        <p class="section-intro">This is tape itself, compiled to WebAssembly and running in your browser on a month of real BTC/USDT one-minute data. Pick a strategy, decide how honest the execution should be, and run it.</p>
+        <p class="section-intro">This is tape itself, compiled to WebAssembly and running in your browser on a month of real BTC/USDT one-minute data. Pick a strategy or write your own in JavaScript, decide how honest the execution should be, and run it.</p>
 
         <form class="demo" id="demo-form">
           <div class="demo-row">
@@ -182,6 +182,7 @@
                 <option value="meanrev">Mean reversion</option>
                 <option value="breakout">Breakout</option>
                 <option value="hold">Buy and hold</option>
+                <option value="custom">Write your own (JavaScript)</option>
               </select>
             </label>
             <label class="field" data-for="sma"><span>Fast average (bars)</span><input type="number" name="fast" value="20" min="2" max="500" inputmode="numeric"></label>
@@ -208,6 +209,19 @@
             </label>
           </div>
 
+          <div class="custom" data-for="custom" hidden>
+            <div class="custom-bar">
+              <label class="field"><span>Start from</span><select name="example"></select></label>
+              <p class="custom-note">Define <code>onBar(bar, ctx)</code>. It runs after each one-minute bar closes and only ever sees bars that already have. The comments in the example list everything <code>ctx</code> can do.</p>
+            </div>
+            <div class="editor">
+              <div class="editor-gutter" aria-hidden="true"></div>
+              <textarea name="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="Strategy code" aria-describedby="editor-help"></textarea>
+            </div>
+            <p class="editor-help" id="editor-help">Tab indents. Press Esc, then Tab, to move on. Your code stays in this browser and only runs when you press Run.</p>
+            <p class="editor-error" data-demo="code-error" role="alert" hidden></p>
+          </div>
+
           <fieldset class="execution">
             <legend>Execution</legend>
             <div class="presets" role="radiogroup" aria-label="Execution preset">
@@ -220,12 +234,13 @@
               <label class="slider"><span>Fees</span><input type="range" name="fees" min="0" max="30" step="0.5" value="10"><output data-unit="bps"></output></label>
               <label class="slider"><span>Slippage</span><input type="range" name="slippage" min="0" max="30" step="0.5" value="2"><output data-unit="bps"></output></label>
               <label class="slider"><span>Share of each bar's volume</span><input type="range" name="participation" min="1" max="100" step="1" value="10"><output data-unit="%"></output><small class="hint">Rarely matters on one-minute bars.</small></label>
-              <label class="check" data-for="meanrev" hidden><input type="checkbox" name="touch"><span>Limit orders fill when the price only touches them <small class="hint-inline">(rarely matters on one-minute bars)</small></span></label>
+              <label class="check" data-for="meanrev custom" hidden><input type="checkbox" name="touch"><span>Limit orders fill when the price only touches them <small class="hint-inline">(rarely matters on one-minute bars)</small></span></label>
             </div>
           </fieldset>
 
           <div class="demo-submit">
             <button class="button primary" type="submit">Run backtest</button>
+            <button class="button" type="button" data-demo="stop" hidden>Stop</button>
             <span class="demo-meta" data-demo="meta" aria-live="polite"></span>
           </div>
         </form>
@@ -234,6 +249,10 @@
           <div class="tiles" data-demo="tiles"></div>
           <div class="chart-host" id="demo-chart"></div>
           <p class="demo-hash" data-demo="hash"></p>
+          <div class="console" data-demo="console" hidden>
+            <h3 class="console-title">Console</h3>
+            <pre data-demo="log"></pre>
+          </div>
         </div>
       </div>
     </section>
