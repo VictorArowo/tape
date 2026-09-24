@@ -3,7 +3,8 @@
 <title>tape engine check</title>
 <pre id="out">loading…</pre>
 <script type="module">
-  import { createEngine } from "./tape-engine.js";
+  import { createEngine, createWorkerEngine } from "./tape-engine.js";
+  import { examples } from "./strategies.js";
   const out = document.getElementById("out");
   const lines = [];
   try {
@@ -15,6 +16,28 @@
     }
     const r = await engine.run({ strategy: "sma", fast: 20, slow: 100, month: "2024-07", execution });
     lines.push(`second month loaded: ${r.dates[0]} → ${r.dates.at(-1)}`);
+
+    // Custom strategies, in a worker that stops runaway code.
+    const worker = createWorkerEngine({ base: "./", timeoutMs: 2000 });
+    for (const example of examples) {
+      const c = await worker.run({ strategy: "custom", code: example.code, month: "2024-01", execution });
+      lines.push(`custom ${example.id.padEnd(9)} return ${(c.stats.totalReturn * 100).toFixed(2)}%  trades ${c.stats.trades}  ${c.elapsedMs.toFixed(0)} ms  ${c.runHash}`);
+    }
+    const started = performance.now();
+    try {
+      await worker.run({ strategy: "custom", code: "function onBar() { while (true) {} }", month: "2024-01", execution });
+      throw new Error("an endless loop wasn't stopped");
+    } catch (err) {
+      if (err.name !== "StrategyError") throw err;
+      lines.push(`endless loop stopped after ${((performance.now() - started) / 1000).toFixed(1)} s: ${err.message}`);
+    }
+    try {
+      await worker.run({ strategy: "custom", code: "function onBar(bar, ctx) {\n  ctx.buy(ctx.nope());\n}", month: "2024-01", execution });
+    } catch (err) {
+      lines.push(`error from the worker: ${err.name}, line ${err.line}: ${err.message}`);
+    }
+    const again = await worker.run({ strategy: "custom", code: examples[0].code, month: "2024-01", execution });
+    lines.push(`fresh worker after the stop: ${again.runHash} (${again.runHash === "b041ccbf3b22c38c" ? "matches native" : "DIFFERENT"})`);
     lines.push("OK");
   } catch (err) {
     lines.push("ERROR " + err.message);

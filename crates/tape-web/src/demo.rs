@@ -3,12 +3,15 @@
 //! Each run backtests the chosen strategy twice on the loaded month: once
 //! with the execution settings from the page, and once with naive
 //! execution, so the page can show both. Equity is sampled hourly.
+//!
+//! `"strategy": "custom"` runs the page's own JavaScript (see
+//! [`crate::custom`]); the result then also carries what it logged.
 
 use std::convert::Infallible;
 
 use serde::Deserialize;
 use serde_json::{Value, json};
-use tape_core::{MarketEvent, Money, TimeDelta};
+use tape_core::{MarketEvent, Money, Side, TimeDelta};
 use tape_engine::{Backtest, BacktestConfig, BacktestResult, ExecutionModel, FeeModel, Strategy};
 use tape_strategies::{Breakout, BuyAndHold, MeanReversion, SmaCross};
 
@@ -61,7 +64,17 @@ fn in_range(value: f64, name: &str, min: f64, max: f64) -> Result<f64, String> {
     Ok(value)
 }
 
-fn strategy(params: &Params, dataset: &Dataset) -> Result<Box<dyn Strategy>, String> {
+/// Makes the strategy for a `"custom"` run, fresh for each backtest.
+pub type Custom<'a> = &'a dyn Fn() -> Result<Box<dyn Strategy>, String>;
+
+/// Fills listed in a result; a busy strategy's later fills are left out.
+const MAX_FILLS: usize = 5_000;
+
+fn strategy(
+    params: &Params,
+    dataset: &Dataset,
+    custom: Custom<'_>,
+) -> Result<Box<dyn Strategy>, String> {
     let id = dataset.instrument.id;
     Ok(match params.strategy.as_str() {
         "sma" => {
@@ -82,6 +95,7 @@ fn strategy(params: &Params, dataset: &Dataset) -> Result<Box<dyn Strategy>, Str
             whole(params.lookback, "lookback", 2.0, 20_000.0)?,
         )),
         "hold" => Box::new(BuyAndHold::new(id)),
+        "custom" => custom()?,
         other => return Err(format!("unknown strategy {other:?}")),
     })
 }
@@ -110,6 +124,7 @@ fn backtest(
     dataset: &Dataset,
     params: &Params,
     model: ExecutionModel,
+    custom: Custom<'_>,
 ) -> Result<BacktestResult, String> {
     let cash = Money::from_raw((in_range(params.cash, "cash", 1.0, 1e9)? * 1e8).round() as i64);
     let config = BacktestConfig {
@@ -118,7 +133,7 @@ fn backtest(
         allow_short: false,
         equity_interval: TimeDelta::from_hours(1),
     };
-    let mut strategy = strategy(params, dataset)?;
+    let mut strategy = strategy(params, dataset, custom)?;
     Backtest::new(config, [dataset.instrument.clone()])
         .run(
             strategy.as_mut(),
@@ -145,8 +160,17 @@ fn max_drawdown(values: &[f64]) -> f64 {
 
 /// Runs a backtest and returns the result the page renders.
 pub fn run(dataset: &Dataset, params: &Params) -> Result<Value, String> {
-    let chosen = backtest(dataset, params, execution(&params.execution)?)?;
-    let naive = backtest(dataset, params, ExecutionModel::naive())?;
+    run_with(dataset, params, &crate::custom_strategy)
+}
+
+/// [`run`], with `custom` making the strategy for `"custom"` runs.
+pub fn run_with(dataset: &Dataset, params: &Params, custom: Custom<'_>) -> Result<Value, String> {
+    let chosen = backtest(dataset, params, execution(&params.execution)?, custom)?;
+    let log = match params.strategy.as_str() {
+        "custom" => crate::custom::take_log(),
+        _ => Vec::new(),
+    };
+    let naive = backtest(dataset, params, ExecutionModel::naive(), custom)?;
 
     // Both runs see the same bars, so they sample equity at the same times.
     let dates: Vec<String> = chosen.equity.iter().map(|p| p.ts.to_string()).collect();
@@ -171,6 +195,14 @@ pub fn run(dataset: &Dataset, params: &Params) -> Result<Value, String> {
         "dates": dates,
         "equity": equity,
         "naiveEquity": naive_equity,
+        // [time in ms, "buy" or "sell", price, quantity]
+        "fills": chosen.fills.iter().take(MAX_FILLS).map(|f| json!([
+            f.ts.as_nanos() / 1_000_000,
+            if f.side == Side::Buy { "buy" } else { "sell" },
+            f.price.to_f64(),
+            f.qty.to_f64(),
+        ])).collect::<Vec<_>>(),
+        "log": log,
         "stats": {
             "totalReturn": total(&chosen),
             "naiveReturn": total(&naive),
@@ -202,8 +234,10 @@ pub fn run_json(dataset: Option<&Dataset>, params: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::custom;
     use crate::format::{decode, encode};
-    use tape_core::{Bar, Instrument, InstrumentId, Price, Qty, Timestamp};
+    use tape_core::{Bar, Fill, Instrument, InstrumentId, Price, Qty, Timestamp, abi};
+    use tape_engine::OrderUpdate;
 
     fn dataset() -> Dataset {
         let instrument = Instrument::new(
@@ -297,5 +331,207 @@ mod tests {
         assert_eq!(out["error"], "no month is loaded");
         let out: Value = serde_json::from_str(&run_json(Some(&data), "{nope")).unwrap();
         assert!(out["error"].as_str().unwrap().starts_with("bad parameters"));
+    }
+
+    /// The reference crossover, rewritten against the bridge a page's
+    /// JavaScript uses: sums of closes in cents, sizing with `max_buy`.
+    struct BridgeCross {
+        closes: Vec<f64>,
+        fast: usize,
+        slow: usize,
+    }
+
+    impl custom::Callbacks for BridgeCross {
+        fn on_start(&mut self) -> Result<(), String> {
+            self.closes.clear();
+            Ok(())
+        }
+
+        fn on_bar(&mut self, bar: &Bar) -> Result<(), String> {
+            self.closes.push((bar.close.to_f64() * 100.0).round());
+            let n = self.closes.len();
+            if n < self.slow || custom::open_orders() > 0 {
+                return Ok(());
+            }
+            let sum = |len: usize| self.closes[n - len..].iter().sum::<f64>();
+            let want_long = sum(self.fast) * self.slow as f64 > sum(self.slow) * self.fast as f64;
+            let position = custom::position();
+            if want_long && position == 0.0 {
+                let qty = custom::max_buy(bar.close.to_f64());
+                if qty > 0.0 {
+                    custom::submit(abi::SIDE_BUY, abi::ORDER_MARKET, qty, 0.0, abi::TIF_IOC);
+                }
+            } else if !want_long && position > 0.0 {
+                custom::submit(
+                    abi::SIDE_SELL,
+                    abi::ORDER_MARKET,
+                    position,
+                    0.0,
+                    abi::TIF_IOC,
+                );
+            }
+            Ok(())
+        }
+
+        fn on_fill(&mut self, _: &Fill) -> Result<(), String> {
+            Ok(())
+        }
+
+        fn on_order(&mut self, _: &OrderUpdate) -> Result<(), String> {
+            Ok(())
+        }
+
+        fn on_finish(&mut self) -> Result<(), String> {
+            custom::log(&format!("saw {} bars", self.closes.len()));
+            Ok(())
+        }
+    }
+
+    fn run_custom<C: custom::Callbacks + 'static>(make: impl Fn() -> C) -> Value {
+        let data = dataset();
+        let params: Params = serde_json::from_str(&params("custom")).unwrap();
+        run_with(&data, &params, &|| {
+            Ok(Box::new(custom::JsStrategy::new(make())) as Box<dyn Strategy>)
+        })
+        .unwrap_or_else(|err| json!({ "error": err }))
+    }
+
+    #[test]
+    fn a_custom_strategy_gets_the_same_engine() {
+        let custom = run_custom(|| BridgeCross {
+            closes: Vec::new(),
+            fast: 20,
+            slow: 100,
+        });
+        let native: Value =
+            serde_json::from_str(&run_json(Some(&dataset()), &params("sma"))).unwrap();
+        assert!(custom["stats"]["trades"].as_u64().unwrap() > 10);
+        assert_eq!(custom["runHash"], native["runHash"]);
+        assert_eq!(custom["naiveRunHash"], native["naiveRunHash"]);
+        assert_eq!(custom["stats"], native["stats"]);
+        assert_eq!(custom["strategy"], "custom");
+        // Only the chosen run's log comes back.
+        assert_eq!(custom["log"], json!(["saw 3000 bars"]));
+        assert_eq!(native["log"], json!([]));
+        assert_eq!(
+            custom["fills"].as_array().unwrap().len(),
+            native["fills"].as_array().unwrap().len()
+        );
+    }
+
+    /// Buys an awkward amount at an awkward limit price on the first bar,
+    /// then records what the engine made of it.
+    struct Awkward;
+
+    impl custom::Callbacks for Awkward {
+        fn on_start(&mut self) -> Result<(), String> {
+            assert_eq!(custom::cash(), 10_000.0);
+            assert!(custom::price().is_nan());
+            // Nothing to buy with before a price is known.
+            assert_eq!(custom::max_buy(f64::NAN), 0.0);
+            Ok(())
+        }
+
+        fn on_bar(&mut self, bar: &Bar) -> Result<(), String> {
+            if custom::now() == bar.close_ts.as_nanos() as f64 / 1e6
+                && custom::position() == 0.0
+                && custom::open_orders() == 0
+            {
+                let limit = custom::price() * 1.001 + 0.004_9;
+                let id = custom::submit(
+                    abi::SIDE_BUY,
+                    abi::ORDER_LIMIT,
+                    0.012_345_67,
+                    limit,
+                    abi::TIF_GTC,
+                );
+                assert_eq!(id, 1.0);
+                assert_eq!(custom::cancel(0.5), custom::BAD_ARGUMENTS);
+                assert_eq!(
+                    custom::submit(7, abi::ORDER_MARKET, 1.0, 0.0, abi::TIF_GTC),
+                    custom::BAD_ARGUMENTS
+                );
+                assert_eq!(
+                    custom::submit(
+                        abi::SIDE_BUY,
+                        abi::ORDER_MARKET,
+                        f64::INFINITY,
+                        0.0,
+                        abi::TIF_GTC
+                    ),
+                    custom::BAD_ARGUMENTS
+                );
+            }
+            Ok(())
+        }
+
+        fn on_fill(&mut self, fill: &Fill) -> Result<(), String> {
+            custom::log(&format!("{} {}", fill.qty, fill.price));
+            Err("stop here".into())
+        }
+
+        fn on_order(&mut self, _: &OrderUpdate) -> Result<(), String> {
+            Ok(())
+        }
+
+        fn on_finish(&mut self) -> Result<(), String> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn rounds_orders_onto_the_lot_and_tick_and_reports_errors() {
+        let out = run_custom(|| Awkward);
+        let error = out["error"].as_str().unwrap();
+        assert!(error.contains("stop here (in onFill)"), "{error}");
+        assert_eq!(custom::take_log().len(), 1);
+        // Outside a callback there's nothing to read or do.
+        assert!(custom::cash().is_nan());
+        assert_eq!(
+            custom::submit(abi::SIDE_BUY, abi::ORDER_MARKET, 1.0, 0.0, abi::TIF_GTC),
+            custom::NOT_IN_CALLBACK
+        );
+    }
+
+    #[test]
+    fn logs_the_quantity_after_rounding_down_to_whole_lots() {
+        struct Once(bool);
+        impl custom::Callbacks for Once {
+            fn on_start(&mut self) -> Result<(), String> {
+                Ok(())
+            }
+            fn on_bar(&mut self, _: &Bar) -> Result<(), String> {
+                if !self.0 {
+                    self.0 = true;
+                    custom::submit(
+                        abi::SIDE_BUY,
+                        abi::ORDER_MARKET,
+                        0.012_345_67,
+                        0.0,
+                        abi::TIF_GTC,
+                    );
+                }
+                Ok(())
+            }
+            fn on_fill(&mut self, fill: &Fill) -> Result<(), String> {
+                custom::log(&fill.qty.to_string());
+                Ok(())
+            }
+            fn on_order(&mut self, _: &OrderUpdate) -> Result<(), String> {
+                Ok(())
+            }
+            fn on_finish(&mut self) -> Result<(), String> {
+                Ok(())
+            }
+        }
+        let out = run_custom(|| Once(false));
+        assert_eq!(out["log"], json!(["0.01234"]));
+    }
+
+    #[test]
+    fn custom_runs_need_the_browser() {
+        let out: Value =
+            serde_json::from_str(&run_json(Some(&dataset()), &params("custom"))).unwrap();
+        assert!(out["error"].as_str().unwrap().contains("browser"));
     }
 }

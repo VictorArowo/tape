@@ -59,6 +59,34 @@ pub enum CancelReason {
     EndOfData,
 }
 
+impl RejectReason {
+    /// The reason's code at the WebAssembly boundary, an index into
+    /// [`tape_core::abi::REJECT_REASONS`].
+    pub fn abi_code(self) -> i32 {
+        match self {
+            Self::UnknownInstrument => 0,
+            Self::InvalidQty => 1,
+            Self::InvalidPrice => 2,
+            Self::InsufficientCash => 3,
+            Self::InsufficientPosition => 4,
+        }
+    }
+}
+
+impl CancelReason {
+    /// The reason's code at the WebAssembly boundary, an index into
+    /// [`tape_core::abi::CANCEL_REASONS`].
+    pub fn abi_code(self) -> i32 {
+        match self {
+            Self::Requested => 0,
+            Self::ImmediateOrCancel => 1,
+            Self::InsufficientCash => 2,
+            Self::InsufficientPosition => 3,
+            Self::EndOfData => 4,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum OrderUpdate {
     /// The order reached the exchange and is working.

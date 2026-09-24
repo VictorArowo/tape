@@ -37,10 +37,12 @@ crates/
   tape-guest       SDK for strategies compiled to WebAssembly
   tape-wasm        the sandbox that runs them: capability, compute and memory limits
   tape-lab         the AI research desk: propose, write, backtest, critique, then one held-out test
-  tape-web         the engine compiled to WebAssembly for the browser demo
+  tape-web         the engine compiled to WebAssembly for the browser demo, including custom JavaScript strategies
   tape-cli         the `tape` command
 web/
   tape-engine.js   loader for the browser build; build.sh writes web/dist, test.mjs checks it against native
+  tape-worker.js   runs the engine off the page, so a runaway custom strategy can be stopped
+  strategies.js    example custom strategies
 guests/
   sma-cross        the reference crossover, compiled for the sandbox
 ```
@@ -55,6 +57,10 @@ cargo build --release --target wasm32-unknown-unknown \
 cargo run --release -p tape-cli -- run wasm --from 2024-01 \
   --module target/guests/wasm32-unknown-unknown/release/tape_guest_sma_cross.wasm
 ```
+
+## Custom strategies in the browser
+
+The browser build can run a strategy written in JavaScript through the real engine. The code defines `onBar(bar, ctx)` (and optionally `setup`, `onFill`, `onOrder`, `onFinish`) and trades with `ctx.buy` and `ctx.sell`. It works like the sandbox: before each callback the engine takes a snapshot of what the strategy may see, and afterwards it replays the strategy's orders through the same execution model. So the strategy gets exactly what a native one would, and nothing later. There's no clock or network, randomness is seeded, and a run in the worker that doesn't finish is stopped. `web/test.mjs` checks that the moving-average crossover written in JavaScript produces the same run hashes as the native one.
 
 ## Try it
 

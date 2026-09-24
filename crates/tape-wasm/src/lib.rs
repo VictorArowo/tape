@@ -29,9 +29,7 @@ use wasmtime::{
 use tape_core::{
     Fill, Instrument, InstrumentId, MarketEvent, Money, OrderId, OrderRequest, Price, Qty, abi,
 };
-use tape_engine::{
-    CancelReason, Context, FeeModel, OrderUpdate, RejectReason, Strategy, affordable_qty,
-};
+use tape_engine::{Context, FeeModel, OrderUpdate, Strategy, affordable_qty};
 
 /// Resource limits applied to every sandboxed strategy.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -550,26 +548,6 @@ impl WasmStrategy {
     }
 }
 
-fn reject_code(reason: RejectReason) -> i32 {
-    match reason {
-        RejectReason::UnknownInstrument => 0,
-        RejectReason::InvalidQty => 1,
-        RejectReason::InvalidPrice => 2,
-        RejectReason::InsufficientCash => 3,
-        RejectReason::InsufficientPosition => 4,
-    }
-}
-
-fn cancel_code(reason: CancelReason) -> i32 {
-    match reason {
-        CancelReason::Requested => 0,
-        CancelReason::ImmediateOrCancel => 1,
-        CancelReason::InsufficientCash => 2,
-        CancelReason::InsufficientPosition => 3,
-        CancelReason::EndOfData => 4,
-    }
-}
-
 impl Strategy for WasmStrategy {
     fn name(&self) -> String {
         self.name.clone()
@@ -634,7 +612,7 @@ impl Strategy for WasmStrategy {
                 id.0 as i64,
                 ts.as_nanos(),
                 abi::UPDATE_REJECTED,
-                reject_code(reason),
+                reason.abi_code(),
                 0,
             ),
             OrderUpdate::Cancelled {
@@ -646,7 +624,7 @@ impl Strategy for WasmStrategy {
                 id.0 as i64,
                 ts.as_nanos(),
                 abi::UPDATE_CANCELLED,
-                cancel_code(reason),
+                reason.abi_code(),
                 remaining.raw(),
             ),
             OrderUpdate::Filled { id, ts } => (
@@ -667,25 +645,25 @@ impl Strategy for WasmStrategy {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use tape_engine::{CancelReason, RejectReason};
 
     #[test]
     fn reason_codes_match_the_abi_tables() {
         use tape_core::abi::{CANCEL_REASONS, REJECT_REASONS};
         assert_eq!(
-            REJECT_REASONS[reject_code(RejectReason::InsufficientCash) as usize],
+            REJECT_REASONS[RejectReason::InsufficientCash.abi_code() as usize],
             "insufficient cash"
         );
         assert_eq!(
-            REJECT_REASONS[reject_code(RejectReason::InvalidPrice) as usize],
+            REJECT_REASONS[RejectReason::InvalidPrice.abi_code() as usize],
             "invalid price"
         );
         assert_eq!(
-            CANCEL_REASONS[cancel_code(CancelReason::EndOfData) as usize],
+            CANCEL_REASONS[CancelReason::EndOfData.abi_code() as usize],
             "end of data"
         );
         assert_eq!(
-            CANCEL_REASONS[cancel_code(CancelReason::ImmediateOrCancel) as usize],
+            CANCEL_REASONS[CancelReason::ImmediateOrCancel.abi_code() as usize],
             "immediate or cancel"
         );
     }
